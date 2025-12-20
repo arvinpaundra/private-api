@@ -34,7 +34,7 @@ func (r *AuthRouter) Public(g *gin.RouterGroup) {
 	{
 		auth.POST("/login", h.Login)
 		auth.POST("/register", h.Register)
-		auth.POST("/refresh-token", h.RefreshToken)
+		// auth.POST("/refresh-token", h.RefreshToken)
 	}
 }
 
