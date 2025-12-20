@@ -1,0 +1,12 @@
+# IDE
+.idea
+.vscode
+
+# environments
+.env
+
+# tests
+*.out
+
+# builds
+/bin
