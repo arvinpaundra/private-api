@@ -1,0 +1,6 @@
+BEGIN;
+
+DROP TABLE IF EXISTS subjects;
+DROP TABLE IF EXISTS grades;
+
+COMMIT;
