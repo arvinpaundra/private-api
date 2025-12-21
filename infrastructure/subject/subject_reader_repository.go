@@ -29,7 +29,7 @@ func (r *SubjectReaderRepository) HasSimilarSubject(ctx context.Context, name st
 
 	err := r.db.WithContext(ctx).
 		Raw(
-			`SELECT EXISTS (SELECT 1 FROM subjects WHERE LOWER(name) = ? AND user_id = ? AND deleted_at IS NULL)`,
+			`SELECT EXISTS(SELECT 1 FROM subjects WHERE LOWER(name) = ? AND user_id = ? AND deleted_at IS NULL)`,
 			strings.ToLower(name),
 			userID,
 		).
@@ -47,7 +47,7 @@ func (r *SubjectReaderRepository) HasSimilarSubjectExclusive(ctx context.Context
 
 	err := r.db.WithContext(ctx).
 		Raw(
-			`SELECT EXISTS (SELECT 1 FROM subjects WHERE LOWER(name) = ? AND user_id = ? AND id <> ? AND deleted_at IS NULL)`,
+			`SELECT EXISTS(SELECT 1 FROM subjects WHERE LOWER(name) = ? AND user_id = ? AND id <> ? AND deleted_at IS NULL)`,
 			strings.ToLower(name),
 			userID,
 			excludeSubjectID,
