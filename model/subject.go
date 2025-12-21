@@ -9,6 +9,7 @@ import (
 
 type Subject struct {
 	ID          uuid.UUID   `gorm:"primaryKey;column:id"`
+	UserID      uuid.UUID   `gorm:"column:user_id"`
 	Name        string      `gorm:"column:name"`
 	Description null.String `gorm:"nullable;column:description"`
 	CreatedAt   time.Time   `gorm:"column:created_at"`

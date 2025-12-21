@@ -22,13 +22,11 @@ func NewUserWriterRepository(db *gorm.DB) *UserWriterRepository {
 }
 
 func (r *UserWriterRepository) Save(ctx context.Context, user *entity.User) error {
-	if user.IsCreated() {
-		return r.insert(ctx, user)
-	} else if user.IsUpdated() {
+	if user.IsUpdated() {
 		return r.update(ctx, user)
 	}
 
-	return nil
+	return r.insert(ctx, user)
 }
 
 func (r *UserWriterRepository) insert(ctx context.Context, user *entity.User) error {

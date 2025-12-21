@@ -11,21 +11,18 @@ import (
 	"github.com/arvinpaundra/private-api/infrastructure/auth"
 	"github.com/arvinpaundra/private-api/infrastructure/shared"
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
 )
 
 type AuthHandler struct {
 	db        *gorm.DB
-	rdb       *redis.Client
 	validator *validator.Validator
 }
 
-func NewAuthHandler(db *gorm.DB, rdb *redis.Client, validator *validator.Validator) *AuthHandler {
+func NewAuthHandler(db *gorm.DB, validator *validator.Validator) *AuthHandler {
 	return &AuthHandler{
 		db:        db,
-		rdb:       rdb,
 		validator: validator,
 	}
 }

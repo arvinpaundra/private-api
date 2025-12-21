@@ -28,7 +28,7 @@ func NewAuthRouter(
 }
 
 func (r *AuthRouter) Public(g *gin.RouterGroup) {
-	h := handler.NewAuthHandler(r.db, r.rdb, r.vld)
+	h := handler.NewAuthHandler(r.db, r.vld)
 
 	auth := g.Group("/auth")
 	{
@@ -39,7 +39,7 @@ func (r *AuthRouter) Public(g *gin.RouterGroup) {
 }
 
 func (r *AuthRouter) Private(g *gin.RouterGroup) {
-	h := handler.NewAuthHandler(r.db, r.rdb, r.vld)
+	h := handler.NewAuthHandler(r.db, r.vld)
 	m := middleware.NewAuthenticate(r.db)
 
 	me := g.Group("/me", m.Authenticate())

@@ -2,20 +2,24 @@ BEGIN;
 
 CREATE TABLE IF NOT EXISTS subjects (
     id UUID PRIMARY KEY,
+    user_id UUID NOT NULL,
     name VARCHAR(100) NOT NULL,
     description TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP
+    deleted_at TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 CREATE TABLE IF NOT EXISTS grades (
     id UUID PRIMARY KEY,
+    user_id UUID NOT NULL,
     name VARCHAR(100) NOT NULL,
     description TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP
+    deleted_at TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 COMMIT;
