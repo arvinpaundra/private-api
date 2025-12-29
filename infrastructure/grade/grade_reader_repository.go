@@ -61,6 +61,24 @@ func (r *GradeReaderRepository) HasSimilarGradeExclusive(ctx context.Context, na
 	return isExists, nil
 }
 
+func (r *GradeReaderRepository) IsGradeExist(ctx context.Context, gradeID string, userID string) (bool, error) {
+	var isExists bool
+
+	err := r.db.WithContext(ctx).
+		Raw(
+			`SELECT EXISTS(SELECT 1 FROM grades WHERE id = ? AND user_id = ? AND deleted_at IS NULL)`,
+			gradeID,
+			userID,
+		).
+		Scan(&isExists).Error
+
+	if err != nil {
+		return false, err
+	}
+
+	return isExists, nil
+}
+
 func (r *GradeReaderRepository) FindGradeByID(ctx context.Context, gradeID string, userID string) (*entity.Grade, error) {
 	var gradeModel model.Grade
 

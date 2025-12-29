@@ -1,0 +1,57 @@
+package entity
+
+import (
+	"github.com/arvinpaundra/private-api/core/trait"
+	"github.com/arvinpaundra/private-api/core/util"
+	"github.com/arvinpaundra/private-api/domain/module/constant"
+)
+
+type Module struct {
+	trait.Createable
+	trait.Updateable
+	trait.Removeable
+
+	ID          string
+	UserID      string
+	SubjectID   string
+	GradeID     string
+	Title       string
+	Slug        string
+	Description *string
+	Type        constant.ModuleType
+	IsPublished bool
+
+	Questions []*Question
+}
+
+func NewModule(userID, subjectID, gradeID, title string, description *string) *Module {
+	module := &Module{
+		ID:          util.GenerateUUID(),
+		UserID:      userID,
+		SubjectID:   subjectID,
+		GradeID:     gradeID,
+		Title:       title,
+		Description: description,
+		Type:        constant.MultipleChoice,
+		IsPublished: false,
+	}
+
+	module.MarkCreate()
+
+	return module
+}
+
+func (m *Module) GenSlug() error {
+	slug, err := util.RandomAlphanumeric(12)
+	if err != nil {
+		return err
+	}
+
+	m.Slug = slug
+
+	return nil
+}
+
+func (m *Module) Publish() {
+	m.IsPublished = true
+}

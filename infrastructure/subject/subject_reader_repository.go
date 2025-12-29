@@ -61,6 +61,24 @@ func (r *SubjectReaderRepository) HasSimilarSubjectExclusive(ctx context.Context
 	return isExists, nil
 }
 
+func (r *SubjectReaderRepository) IsSubjectExist(ctx context.Context, subjectID string, userID string) (bool, error) {
+	var isExists bool
+
+	err := r.db.WithContext(ctx).
+		Raw(
+			`SELECT EXISTS(SELECT 1 FROM subjects WHERE id = ? AND user_id = ? AND deleted_at IS NULL)`,
+			subjectID,
+			userID,
+		).
+		Scan(&isExists).Error
+
+	if err != nil {
+		return false, err
+	}
+
+	return isExists, nil
+}
+
 func (r *SubjectReaderRepository) FindSubjectByID(ctx context.Context, subjectID string, userID string) (*entity.Subject, error) {
 	var subjectModel model.Subject
 

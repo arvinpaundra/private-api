@@ -1,0 +1,8 @@
+BEGIN;
+
+DROP TABLE IF EXISTS question_choices;
+DROP TABLE IF EXISTS questions;
+DROP TABLE IF EXISTS modules;
+DROP TYPE IF EXISTS module_type;
+
+COMMIT;
