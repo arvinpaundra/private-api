@@ -39,3 +39,35 @@ func (a *GradeACLAdapter) IsGradeExist(ctx context.Context, gradeID string, user
 
 	return exists, nil
 }
+
+func (a *GradeACLAdapter) GetGradeName(ctx context.Context, gradeID string, userID string) (string, error) {
+	gradeService := service.NewFindDetailGrade(
+		a.authStorage,
+		grade.NewGradeReaderRepository(a.db),
+	)
+
+	gradeDetail, err := gradeService.Execute(ctx, &service.FindDetailGradeCommand{
+		ID: gradeID,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return gradeDetail.Name, nil
+}
+
+func (a *GradeACLAdapter) GetGradeNames(ctx context.Context, gradeIDs []string, userID string) (map[string]string, error) {
+	gradeService := service.NewGetGradeNames(
+		a.authStorage,
+		grade.NewGradeReaderRepository(a.db),
+	)
+
+	names, err := gradeService.Execute(ctx, &service.GetGradeNamesCommand{
+		GradeIDs: gradeIDs,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return names, nil
+}

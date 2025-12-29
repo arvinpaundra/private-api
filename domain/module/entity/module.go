@@ -54,4 +54,15 @@ func (m *Module) GenSlug() error {
 
 func (m *Module) Publish() {
 	m.IsPublished = true
+	m.MarkUpdate()
+}
+
+func (m *Module) Unpublish() {
+	m.IsPublished = false
+	m.MarkUpdate()
+}
+
+func (m *Module) AddQuestion(question *Question) {
+	m.Questions = append(m.Questions, question)
+	m.MarkUpdate()
 }

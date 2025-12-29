@@ -3,13 +3,14 @@ package model
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/guregu/null/v6"
 )
 
 type Question struct {
-	ID        string    `gorm:"primaryKey;column:id"`
-	ModuleID  string    `gorm:"column:module_id"`
-	Title     string    `gorm:"column:title"`
+	ID        uuid.UUID `gorm:"primaryKey;column:id"`
+	ModuleID  uuid.UUID `gorm:"column:module_id"`
+	Content   string    `gorm:"column:content"`
 	Slug      string    `gorm:"column:slug"`
 	CreatedAt time.Time `gorm:"column:created_at"`
 	UpdatedAt time.Time `gorm:"column:updated_at"`

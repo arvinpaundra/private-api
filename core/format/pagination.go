@@ -44,3 +44,23 @@ func NewPagination(page, perPage, total int) Pagination {
 		Total:      total,
 	}
 }
+
+// CalculateOffset calculates the offset for pagination based on page and perPage
+func CalculateOffset(page, perPage int) int {
+	validPage := getPage(page)
+	validPerPage := getLimit(perPage)
+	return (validPage - 1) * validPerPage
+}
+
+// ValidatePage returns a valid page number (minimum 1)
+func ValidatePage(page int) int {
+	return getPage(page)
+}
+
+// ValidatePerPage returns a valid perPage number (minimum 1, default 10)
+func ValidatePerPage(perPage int) int {
+	if perPage < 1 {
+		return 10
+	}
+	return perPage
+}

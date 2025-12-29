@@ -39,3 +39,35 @@ func (a *SubjectACLAdapter) IsSubjectExist(ctx context.Context, subjectID string
 
 	return exists, nil
 }
+
+func (a *SubjectACLAdapter) GetSubjectName(ctx context.Context, subjectID string, userID string) (string, error) {
+	subjectService := service.NewFindDetailSubject(
+		a.authStorage,
+		subject.NewSubjectReaderRepository(a.db),
+	)
+
+	subjectDetail, err := subjectService.Execute(ctx, &service.FindDetailSubjectCommand{
+		ID: subjectID,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return subjectDetail.Name, nil
+}
+
+func (a *SubjectACLAdapter) GetSubjectNames(ctx context.Context, subjectIDs []string, userID string) (map[string]string, error) {
+	subjectService := service.NewGetSubjectNames(
+		a.authStorage,
+		subject.NewSubjectReaderRepository(a.db),
+	)
+
+	names, err := subjectService.Execute(ctx, &service.GetSubjectNamesCommand{
+		SubjectIDs: subjectIDs,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return names, nil
+}

@@ -13,17 +13,17 @@ type Question struct {
 
 	ID       string
 	ModuleID string
-	Title    string
+	Content  string
 	Slug     string
 
 	Choices []*QuestionChoice
 }
 
-func NewQuestion(moduleID, title string) *Question {
+func NewQuestion(moduleID, content string) *Question {
 	question := &Question{
 		ID:       util.GenerateUUID(),
 		ModuleID: moduleID,
-		Title:    title,
+		Content:  content,
 	}
 
 	question.MarkCreate()
@@ -67,6 +67,10 @@ func (q *Question) IsValidChoices() error {
 	}
 
 	return nil
+}
+
+func (q *Question) AddChoice(choice *QuestionChoice) {
+	q.Choices = append(q.Choices, choice)
 }
 
 type QuestionChoice struct {

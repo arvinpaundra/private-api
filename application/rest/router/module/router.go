@@ -27,5 +27,16 @@ func (r *ModuleRouter) Private(g *gin.RouterGroup) {
 	module := g.Group("/modules", m.Authenticate())
 	{
 		module.POST("", h.CreateModule)
+		module.GET("", h.FindAllModules)
+	}
+
+	moduleDetail := module.Group("/:module_slug")
+	{
+		moduleDetail.GET("", h.FindDetailModule)
+		moduleDetail.PATCH("/publish", h.TogglePublishModule)
+
+		question := moduleDetail.Group("/questions")
+
+		question.POST("", h.AddQuestions)
 	}
 }
