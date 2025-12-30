@@ -55,10 +55,10 @@ func (s *FindDetailModule) Execute(ctx context.Context, command *FindDetailModul
 	questions := make([]*response.Question, len(module.Questions))
 
 	for i, question := range module.Questions {
-		choices := make([]*response.Choice, len(question.Choices))
+		choices := make([]*response.ChoiceWithAnswer, len(question.Choices))
 
 		for j, choice := range question.Choices {
-			choices[j] = &response.Choice{
+			choices[j] = &response.ChoiceWithAnswer{
 				ID:              choice.ID,
 				Content:         choice.Content,
 				IsCorrectAnswer: choice.IsCorrectAnswer,

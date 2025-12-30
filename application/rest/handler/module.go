@@ -199,3 +199,37 @@ func (h *ModuleHandler) TogglePublishModule(c *gin.Context) {
 
 	c.JSON(http.StatusOK, format.SuccessOK("module publish status toggled successfully", nil))
 }
+
+func (h *ModuleHandler) FindPublishedQuestion(c *gin.Context) {
+	moduleSlug := c.Param("module_slug")
+	questionSlug := c.Param("question_slug")
+
+	command := service.FindPublishedQuestionCommand{
+		ModuleSlug:   moduleSlug,
+		QuestionSlug: questionSlug,
+	}
+
+	verrs := h.vld.Validate(command)
+	if verrs != nil {
+		c.JSON(http.StatusBadRequest, format.BadRequest("invalid request", verrs))
+		return
+	}
+
+	svc := service.NewFindPublishedQuestion(
+		module.NewModuleReaderRepository(h.db),
+	)
+
+	result, err := svc.Execute(c.Request.Context(), &command)
+	if err != nil {
+		switch err {
+		case constant.ErrModuleNotFound, constant.ErrQuestionNotFound:
+			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))
+			return
+		default:
+			c.JSON(http.StatusInternalServerError, format.InternalServerError())
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, format.SuccessOK("question retrieved successfully", result))
+}

@@ -42,14 +42,27 @@ type ModuleDetail struct {
 }
 
 type Question struct {
-	ID      string    `json:"id"`
-	Content string    `json:"content"`
-	Slug    string    `json:"slug"`
-	Choices []*Choice `json:"choices"`
+	ID      string              `json:"id"`
+	Content string              `json:"content"`
+	Slug    string              `json:"slug"`
+	Choices []*ChoiceWithAnswer `json:"choices"`
 }
 
-type Choice struct {
+type ChoiceWithAnswer struct {
 	ID              string `json:"id"`
 	Content         string `json:"content"`
 	IsCorrectAnswer bool   `json:"is_correct_answer"`
+}
+
+type Choice struct {
+	ID      string `json:"id"`
+	Content string `json:"content"`
+}
+
+type QuestionDetail struct {
+	ID               string    `json:"id"`
+	Content          string    `json:"content"`
+	Slug             string    `json:"slug"`
+	Choices          []*Choice `json:"choices"`
+	NextQuestionSlug *string   `json:"next_question_slug"`
 }

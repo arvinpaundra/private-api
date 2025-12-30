@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func Register(g *gin.Engine, rdb *redis.Client, db *gorm.DB) {
+func Register(g *gin.Engine, rdb *redis.Client, db *gorm.DB) *gin.Engine {
 	g.Use(middleware.Cors())
 	g.Use(gin.Recovery())
 	g.Use(gin.LoggerWithConfig(gin.LoggerConfig{
@@ -28,10 +28,13 @@ func Register(g *gin.Engine, rdb *redis.Client, db *gorm.DB) {
 
 	// public routes
 	authRouter.Public(v1)
+	moduleRouter.Public(v1)
 
 	// private routes
 	authRouter.Private(v1)
 	subjectRouter.Private(v1)
 	gradeRouter.Private(v1)
 	moduleRouter.Private(v1)
+
+	return g
 }

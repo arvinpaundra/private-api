@@ -30,11 +30,11 @@ var restCmd = &cobra.Command{
 
 		g := gin.New()
 
-		router.Register(g, memorydb.GetInMemoryConnection(), relationaldb.GetConnection())
+		app := router.Register(g, memorydb.GetInMemoryConnection(), relationaldb.GetConnection())
 
 		srv := http.Server{
 			Addr:    fmt.Sprintf(":%s", port),
-			Handler: g,
+			Handler: app,
 		}
 
 		go func() {

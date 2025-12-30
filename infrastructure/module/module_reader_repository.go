@@ -2,6 +2,7 @@ package module
 
 import (
 	"context"
+	"errors"
 
 	"github.com/arvinpaundra/private-api/domain/module/constant"
 	"github.com/arvinpaundra/private-api/domain/module/entity"
@@ -35,7 +36,7 @@ func (r *ModuleReaderRepository) FindByID(ctx context.Context, moduleID, userID 
 		Error
 
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, constant.ErrModuleNotFound
 		}
 		return nil, err
@@ -67,7 +68,7 @@ func (r *ModuleReaderRepository) FindBySlug(ctx context.Context, slug, userID st
 		Error
 
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, constant.ErrModuleNotFound
 		}
 		return nil, err
@@ -101,7 +102,7 @@ func (r *ModuleReaderRepository) FindModuleDetailBySlug(ctx context.Context, slu
 		Error
 
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, constant.ErrModuleNotFound
 		}
 		return nil, err
@@ -248,4 +249,111 @@ func (r *ModuleReaderRepository) FindAllModules(ctx context.Context, userID, sub
 	}
 
 	return modules, nil
+}
+
+func (r *ModuleReaderRepository) FindPublishedModuleBySlug(ctx context.Context, slug string) (*entity.Module, error) {
+	var module model.Module
+
+	err := r.db.Model(&model.Module{}).
+		WithContext(ctx).
+		Select("id", "user_id", "subject_id", "grade_id", "title", "slug", "description", "type", "is_published").
+		Where("slug = ?", slug).
+		Where("is_published = true").
+		Where("deleted_at IS NULL").
+		First(&module).
+		Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, constant.ErrModuleNotFound
+		}
+		return nil, err
+	}
+
+	return &entity.Module{
+		ID:          module.ID.String(),
+		UserID:      module.UserID.String(),
+		SubjectID:   module.SubjectID.String(),
+		GradeID:     module.GradeID.String(),
+		Title:       module.Title,
+		Slug:        module.Slug,
+		Description: module.Description.Ptr(),
+		Type:        constant.ModuleType(module.Type),
+		IsPublished: module.IsPublished,
+	}, nil
+}
+
+func (r *ModuleReaderRepository) FindPublishedQuestionBySlug(ctx context.Context, moduleSlug, questionSlug string) (*entity.Question, error) {
+	var question model.Question
+
+	err := r.db.Model(&model.Question{}).
+		WithContext(ctx).
+		Select("questions.id", "questions.module_id", "questions.content", "questions.slug").
+		Joins("JOIN modules ON modules.id = questions.module_id").
+		Where("modules.slug = ?", moduleSlug).
+		Where("modules.is_published = true").
+		Where("modules.deleted_at IS NULL").
+		Where("questions.slug = ?", questionSlug).
+		Where("questions.deleted_at IS NULL").
+		Preload("Choices", "deleted_at IS NULL").
+		First(&question).
+		Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, constant.ErrQuestionNotFound
+		}
+		return nil, err
+	}
+
+	// Convert choices to domain entities
+	choices := make([]*entity.QuestionChoice, len(question.Choices))
+
+	for i, choice := range question.Choices {
+		choices[i] = &entity.QuestionChoice{
+			ID:              choice.ID.String(),
+			QuestionID:      choice.QuestionID.String(),
+			Content:         choice.Content,
+			IsCorrectAnswer: choice.IsCorrectAnswer,
+		}
+	}
+
+	return &entity.Question{
+		ID:       question.ID.String(),
+		ModuleID: question.ModuleID.String(),
+		Content:  question.Content,
+		Slug:     question.Slug,
+		Choices:  choices,
+	}, nil
+}
+
+func (r *ModuleReaderRepository) FindNextPublishedQuestion(ctx context.Context, moduleSlug, currentQuestionSlug string) (*entity.Question, error) {
+	var nextQuestion model.Question
+
+	err := r.db.Model(&model.Question{}).
+		WithContext(ctx).
+		Select("questions.id", "questions.module_id", "questions.content", "questions.slug").
+		Joins("JOIN modules ON modules.id = questions.module_id").
+		Where("modules.slug = ?", moduleSlug).
+		Where("modules.is_published = true").
+		Where("modules.deleted_at IS NULL").
+		Where("questions.deleted_at IS NULL").
+		Where("questions.created_at > (SELECT created_at FROM questions WHERE slug = ? AND deleted_at IS NULL)", currentQuestionSlug).
+		Order("questions.created_at ASC").
+		First(&nextQuestion).
+		Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &entity.Question{
+		ID:       nextQuestion.ID.String(),
+		ModuleID: nextQuestion.ModuleID.String(),
+		Content:  nextQuestion.Content,
+		Slug:     nextQuestion.Slug,
+	}, nil
 }
