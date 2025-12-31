@@ -28,6 +28,10 @@ migrateadd:
 	@echo "Adding new migration file $(NAME)"
 	migrate create -ext sql -dir $(MIGRATION_PATH) $(NAME)
 
+migrateto:
+	@echo "Migrate to version $(VERSION)"
+	migrate -path $(MIGRATION_PATH) -database "$(DB_URL)" -verbose goto $(VERSION)
+
 migrateup:
 	@echo "Execute migrate up"
 	migrate -path $(MIGRATION_PATH) -database "$(DB_URL)" -verbose up

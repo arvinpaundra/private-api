@@ -357,3 +357,23 @@ func (r *ModuleReaderRepository) FindNextPublishedQuestion(ctx context.Context, 
 		Slug:     nextQuestion.Slug,
 	}, nil
 }
+
+func (r *ModuleReaderRepository) CountQuestionsByModuleSlug(ctx context.Context, moduleSlug string) (int, error) {
+	var count int64
+
+	query := r.db.Model(&model.Question{}).
+		WithContext(ctx).
+		Joins("JOIN modules ON questions.module_id = modules.id").
+		Where("modules.slug = ?", moduleSlug).
+		Where("modules.is_published = true").
+		Where("modules.deleted_at IS NULL").
+		Where("questions.deleted_at IS NULL").
+		Count(&count).
+		Error
+
+	if query != nil {
+		return 0, query
+	}
+
+	return int(count), nil
+}

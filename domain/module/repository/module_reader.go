@@ -13,6 +13,7 @@ type ModuleReader interface {
 	FindPublishedModuleBySlug(ctx context.Context, slug string) (*entity.Module, error)
 	FindPublishedQuestionBySlug(ctx context.Context, moduleSlug, questionSlug string) (*entity.Question, error)
 	FindNextPublishedQuestion(ctx context.Context, moduleSlug, currentQuestionSlug string) (*entity.Question, error)
+	CountQuestionsByModuleSlug(ctx context.Context, moduleSlug string) (int, error)
 	TotalModules(ctx context.Context, userID, subjectID, gradeID, keyword string) (int, error)
 	FindAllModules(ctx context.Context, userID, subjectID, gradeID, keyword string, limit, offset int) ([]*entity.Module, error)
 }

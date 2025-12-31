@@ -44,7 +44,6 @@ func (r *ModuleRouter) Private(g *gin.RouterGroup) {
 func (r *ModuleRouter) Public(g *gin.RouterGroup) {
 	h := handler.NewModuleHandler(r.db, r.vld)
 
-	// Public quiz endpoints - no authentication required
 	module := g.Group("/modules/:module_slug")
 	{
 		question := module.Group("/questions")

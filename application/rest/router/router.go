@@ -6,6 +6,7 @@ import (
 	"github.com/arvinpaundra/private-api/application/rest/router/grade"
 	"github.com/arvinpaundra/private-api/application/rest/router/module"
 	"github.com/arvinpaundra/private-api/application/rest/router/subject"
+	"github.com/arvinpaundra/private-api/application/rest/router/submission"
 	"github.com/arvinpaundra/private-api/core/validator"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
@@ -25,10 +26,12 @@ func Register(g *gin.Engine, rdb *redis.Client, db *gorm.DB) *gin.Engine {
 	subjectRouter := subject.NewSubjectRouter(db, validator.NewValidator())
 	gradeRouter := grade.NewGradeRouter(db, validator.NewValidator())
 	moduleRouter := module.NewModuleRouter(db, validator.NewValidator())
+	submissionRouter := submission.NewSubmissionRouter(db, validator.NewValidator())
 
 	// public routes
 	authRouter.Public(v1)
 	moduleRouter.Public(v1)
+	submissionRouter.Public(v1)
 
 	// private routes
 	authRouter.Private(v1)
