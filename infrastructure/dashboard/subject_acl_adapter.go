@@ -4,7 +4,8 @@ import (
 	"context"
 
 	"github.com/arvinpaundra/private-api/domain/dashboard/repository"
-	"github.com/arvinpaundra/private-api/model"
+	"github.com/arvinpaundra/private-api/domain/subject/service"
+	"github.com/arvinpaundra/private-api/infrastructure/subject"
 	"gorm.io/gorm"
 )
 
@@ -21,18 +22,14 @@ func NewSubjectACLAdapter(db *gorm.DB) *SubjectACLAdapter {
 }
 
 func (a *SubjectACLAdapter) CountSubjectsByUserID(ctx context.Context, userID string) (int, error) {
-	var count int64
+	svc := service.NewCountSubjectsByUser(
+		subject.NewSubjectReaderRepository(a.db),
+	)
 
-	err := a.db.Model(&model.Subject{}).
-		WithContext(ctx).
-		Where("user_id = ?", userID).
-		Where("deleted_at IS NULL").
-		Count(&count).
-		Error
-
+	count, err := svc.Execute(ctx, userID)
 	if err != nil {
 		return 0, err
 	}
 
-	return int(count), nil
+	return count, nil
 }

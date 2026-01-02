@@ -4,7 +4,8 @@ import (
 	"context"
 
 	"github.com/arvinpaundra/private-api/domain/dashboard/repository"
-	"github.com/arvinpaundra/private-api/model"
+	"github.com/arvinpaundra/private-api/domain/module/service"
+	"github.com/arvinpaundra/private-api/infrastructure/module"
 	"gorm.io/gorm"
 )
 
@@ -21,18 +22,14 @@ func NewModuleACLAdapter(db *gorm.DB) *ModuleACLAdapter {
 }
 
 func (a *ModuleACLAdapter) CountModulesByUserID(ctx context.Context, userID string) (int, error) {
-	var count int64
+	svc := service.NewCountModulesByUser(
+		module.NewModuleReaderRepository(a.db),
+	)
 
-	err := a.db.Model(&model.Module{}).
-		WithContext(ctx).
-		Where("user_id = ?", userID).
-		Where("deleted_at IS NULL").
-		Count(&count).
-		Error
-
+	count, err := svc.Execute(ctx, userID)
 	if err != nil {
 		return 0, err
 	}
 
-	return int(count), nil
+	return count, nil
 }

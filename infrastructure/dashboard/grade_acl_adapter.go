@@ -4,7 +4,8 @@ import (
 	"context"
 
 	"github.com/arvinpaundra/private-api/domain/dashboard/repository"
-	"github.com/arvinpaundra/private-api/model"
+	"github.com/arvinpaundra/private-api/domain/grade/service"
+	"github.com/arvinpaundra/private-api/infrastructure/grade"
 	"gorm.io/gorm"
 )
 
@@ -21,18 +22,14 @@ func NewGradeACLAdapter(db *gorm.DB) *GradeACLAdapter {
 }
 
 func (a *GradeACLAdapter) CountGradesByUserID(ctx context.Context, userID string) (int, error) {
-	var count int64
+	svc := service.NewCountGradesByUser(
+		grade.NewGradeReaderRepository(a.db),
+	)
 
-	err := a.db.Model(&model.Grade{}).
-		WithContext(ctx).
-		Where("user_id = ?", userID).
-		Where("deleted_at IS NULL").
-		Count(&count).
-		Error
-
+	count, err := svc.Execute(ctx, userID)
 	if err != nil {
 		return 0, err
 	}
 
-	return int(count), nil
+	return count, nil
 }

@@ -140,3 +140,20 @@ func (r *GradeReaderRepository) AllGrades(ctx context.Context, userID string, ke
 
 	return grades, nil
 }
+
+func (r *GradeReaderRepository) CountByUserID(ctx context.Context, userID string) (int, error) {
+	var count int64
+
+	err := r.db.Model(&model.Grade{}).
+		WithContext(ctx).
+		Where("user_id = ?", userID).
+		Where("deleted_at IS NULL").
+		Count(&count).
+		Error
+
+	if err != nil {
+		return 0, err
+	}
+
+	return int(count), nil
+}

@@ -223,3 +223,19 @@ func (r *SubmissionReaderRepository) FindAllSubmittedGroupedByModule(ctx context
 
 	return grouped, nil
 }
+
+func (r *SubmissionReaderRepository) CountSubmitted(ctx context.Context) (int, error) {
+	var count int64
+
+	err := r.db.Model(&model.Submission{}).
+		WithContext(ctx).
+		Where("status = ?", model.Submitted).
+		Count(&count).
+		Error
+
+	if err != nil {
+		return 0, err
+	}
+
+	return int(count), nil
+}

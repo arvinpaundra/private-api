@@ -140,3 +140,20 @@ func (r *SubjectReaderRepository) AllSubjects(ctx context.Context, userID string
 
 	return subjects, nil
 }
+
+func (r *SubjectReaderRepository) CountByUserID(ctx context.Context, userID string) (int, error) {
+	var count int64
+
+	err := r.db.Model(&model.Subject{}).
+		WithContext(ctx).
+		Where("user_id = ?", userID).
+		Where("deleted_at IS NULL").
+		Count(&count).
+		Error
+
+	if err != nil {
+		return 0, err
+	}
+
+	return int(count), nil
+}

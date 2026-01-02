@@ -14,6 +14,7 @@ type GetDashboardStatistics struct {
 	subjectACL    repository.SubjectACL
 	gradeACL      repository.GradeACL
 	submissionACL repository.SubmissionACL
+	userACL       repository.UserACL
 }
 
 func NewGetDashboardStatistics(
@@ -22,6 +23,7 @@ func NewGetDashboardStatistics(
 	subjectACL repository.SubjectACL,
 	gradeACL repository.GradeACL,
 	submissionACL repository.SubmissionACL,
+	userACL repository.UserACL,
 ) *GetDashboardStatistics {
 	return &GetDashboardStatistics{
 		authStorage:   authStorage,
@@ -29,11 +31,18 @@ func NewGetDashboardStatistics(
 		subjectACL:    subjectACL,
 		gradeACL:      gradeACL,
 		submissionACL: submissionACL,
+		userACL:       userACL,
 	}
 }
 
 func (s *GetDashboardStatistics) Execute(ctx context.Context) (*response.DashboardStatistics, error) {
 	userID := s.authStorage.GetUserId()
+
+	// Get user details
+	user, err := s.userACL.GetUserByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
 
 	// Aggregate counts from all domains via ACLs in parallel
 	type result struct {
@@ -94,6 +103,7 @@ func (s *GetDashboardStatistics) Execute(ctx context.Context) (*response.Dashboa
 	}
 
 	return &response.DashboardStatistics{
+		UserFullname:              user.Fullname,
 		TotalModules:              res.modules,
 		TotalSubjects:             res.subjects,
 		TotalGrades:               res.grades,

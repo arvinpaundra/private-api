@@ -4,7 +4,8 @@ import (
 	"context"
 
 	"github.com/arvinpaundra/private-api/domain/dashboard/repository"
-	"github.com/arvinpaundra/private-api/model"
+	"github.com/arvinpaundra/private-api/domain/submission/service"
+	"github.com/arvinpaundra/private-api/infrastructure/submission"
 	"gorm.io/gorm"
 )
 
@@ -21,17 +22,14 @@ func NewSubmissionACLAdapter(db *gorm.DB) *SubmissionACLAdapter {
 }
 
 func (a *SubmissionACLAdapter) CountSubmittedSubmissions(ctx context.Context) (int, error) {
-	var count int64
+	svc := service.NewCountSubmittedSubmissions(
+		submission.NewSubmissionReaderRepository(a.db),
+	)
 
-	err := a.db.Model(&model.Submission{}).
-		WithContext(ctx).
-		Where("status = ?", model.Submitted).
-		Count(&count).
-		Error
-
+	count, err := svc.Execute(ctx)
 	if err != nil {
 		return 0, err
 	}
 
-	return int(count), nil
+	return count, nil
 }

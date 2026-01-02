@@ -28,6 +28,7 @@ func (h *DashboardHandler) GetStatistics(c *gin.Context) {
 		dashboard.NewSubjectACLAdapter(h.db),
 		dashboard.NewGradeACLAdapter(h.db),
 		dashboard.NewSubmissionACLAdapter(h.db),
+		dashboard.NewUserACLAdapter(h.db),
 	)
 
 	result, err := svc.Execute(c.Request.Context())

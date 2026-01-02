@@ -1712,6 +1712,10 @@ components:
     DashboardStatistics:
       type: object
       properties:
+        user_fullname:
+          type: string
+          description: Full name of the authenticated user
+          example: 'John Doe'
         total_modules:
           type: integer
           description: Total number of modules created by the authenticated user
@@ -1729,6 +1733,7 @@ components:
           description: Total number of submitted submissions across all modules (global count)
           example: 127
       required:
+        - user_fullname
         - total_modules
         - total_subjects
         - total_grades

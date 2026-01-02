@@ -377,3 +377,20 @@ func (r *ModuleReaderRepository) CountQuestionsByModuleSlug(ctx context.Context,
 
 	return int(count), nil
 }
+
+func (r *ModuleReaderRepository) CountByUserID(ctx context.Context, userID string) (int, error) {
+	var count int64
+
+	err := r.db.Model(&model.Module{}).
+		WithContext(ctx).
+		Where("user_id = ?", userID).
+		Where("deleted_at IS NULL").
+		Count(&count).
+		Error
+
+	if err != nil {
+		return 0, err
+	}
+
+	return int(count), nil
+}
