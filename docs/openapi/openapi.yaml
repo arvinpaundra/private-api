@@ -42,6 +42,8 @@ security:
 tags:
   - name: Authentication
     description: User authentication and session management
+  - name: Dashboard
+    description: Dashboard statistics and analytics (requires authentication)
   - name: Subjects
     description: Subject management (requires authentication)
   - name: Grades
@@ -49,7 +51,7 @@ tags:
   - name: Modules
     description: Quiz module management
   - name: Submissions
-    description: Public quiz submission endpoints
+    description: Quiz submission and management endpoints
 
 paths:
   # ==========================================
@@ -681,6 +683,38 @@ paths:
                         $ref: '#/components/schemas/Question'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ==========================================
+  # Dashboard & Statistics (Admin)
+  # ==========================================
+  /v1/dashboard/statistics:
+    get:
+      tags:
+        - Dashboard
+      summary: Get dashboard statistics
+      description: |
+        Retrieves aggregated statistics for the authenticated user including:
+        - Total modules created by the user
+        - Total subjects created by the user
+        - Total grades created by the user
+        - Total submitted submissions (global count across all modules)
+      operationId: getDashboardStatistics
+      responses:
+        '200':
+          description: Statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/DashboardStatistics'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -1643,3 +1677,31 @@ components:
         - student_name
         - score
         - submitted_at
+
+    # ==========================================
+    # Dashboard Schemas
+    # ==========================================
+    DashboardStatistics:
+      type: object
+      properties:
+        total_modules:
+          type: integer
+          description: Total number of modules created by the authenticated user
+          example: 15
+        total_subjects:
+          type: integer
+          description: Total number of subjects created by the authenticated user
+          example: 5
+        total_grades:
+          type: integer
+          description: Total number of grades created by the authenticated user
+          example: 8
+        total_submitted_submissions:
+          type: integer
+          description: Total number of submitted submissions across all modules (global count)
+          example: 127
+      required:
+        - total_modules
+        - total_subjects
+        - total_grades
+        - total_submitted_submissions

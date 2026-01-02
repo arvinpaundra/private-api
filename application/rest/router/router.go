@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/arvinpaundra/private-api/application/rest/middleware"
 	"github.com/arvinpaundra/private-api/application/rest/router/auth"
+	"github.com/arvinpaundra/private-api/application/rest/router/dashboard"
 	"github.com/arvinpaundra/private-api/application/rest/router/grade"
 	"github.com/arvinpaundra/private-api/application/rest/router/module"
 	"github.com/arvinpaundra/private-api/application/rest/router/subject"
@@ -27,6 +28,7 @@ func Register(g *gin.Engine, rdb *redis.Client, db *gorm.DB) *gin.Engine {
 	gradeRouter := grade.NewGradeRouter(db, validator.NewValidator())
 	moduleRouter := module.NewModuleRouter(db, validator.NewValidator())
 	submissionRouter := submission.NewSubmissionRouter(db, validator.NewValidator())
+	dashboardRouter := dashboard.NewDashboardRouter(db)
 
 	// public routes
 	authRouter.Public(v1)
@@ -39,6 +41,7 @@ func Register(g *gin.Engine, rdb *redis.Client, db *gorm.DB) *gin.Engine {
 	gradeRouter.Private(v1)
 	moduleRouter.Private(v1)
 	submissionRouter.Private(v1)
+	dashboardRouter.Private(v1)
 
 	return g
 }
