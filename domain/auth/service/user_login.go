@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	"github.com/arvinpaundra/private-api/core/token"
 	"github.com/arvinpaundra/private-api/core/util"
@@ -40,12 +41,15 @@ func NewUserLogin(
 func (s *UserLogin) Execute(ctx context.Context, command UserLoginCommand) (*response.UserLogin, error) {
 	user, err := s.userReader.FindUserByEmail(ctx, command.Email)
 	if err != nil {
+		if errors.Is(err, constant.ErrUserNotFound) {
+			return nil, constant.ErrWrongEmailOrPassword
+		}
 		return nil, err
 	}
 
 	err = util.CompareHashAndString(user.Password, command.Password)
 	if err != nil {
-		return nil, constant.ErrUserNotFound
+		return nil, constant.ErrWrongEmailOrPassword
 	}
 
 	accessToken, err := s.tokenable.Encode(user.ID, constant.TokenValidSevenDays, constant.TokenValidImmediately)

@@ -52,7 +52,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	err = svc.Execute(c.Request.Context(), command)
 	if err != nil {
 		switch err {
-		case constant.ErrEmailAlreadyExists, constant.ErrUsernameAlreadyExists:
+		case constant.ErrEmailAlreadyExists:
 			c.JSON(http.StatusConflict, format.Conflict(err.Error()))
 		default:
 			c.JSON(http.StatusInternalServerError, format.InternalServerError())
@@ -90,6 +90,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		switch err {
 		case constant.ErrUserNotFound:
 			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))
+		case constant.ErrWrongEmailOrPassword:
+			c.JSON(http.StatusUnauthorized, format.Unauthorized(err.Error()))
 		default:
 			c.JSON(http.StatusInternalServerError, format.InternalServerError())
 		}
