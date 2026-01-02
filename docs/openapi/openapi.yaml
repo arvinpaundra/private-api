@@ -627,8 +627,12 @@ paths:
     post:
       tags:
         - Modules
-      summary: Add questions to module
-      description: Adds multiple questions with choices to a module
+      summary: Add or update questions in module
+      description: |
+        Adds new questions or updates existing questions in a module.
+        - If `id` is provided: updates the existing question
+        - If `id` is null/omitted: creates a new question
+        When updating, all choices are replaced with the provided ones.
       operationId: addQuestions
       parameters:
         - $ref: '#/components/parameters/ModuleSlug'
@@ -1437,6 +1441,12 @@ components:
           items:
             type: object
             properties:
+              id:
+                type: string
+                format: uuid
+                nullable: true
+                description: 'Question ID - provide to update existing question, omit to create new'
+                example: '550e8400-e29b-41d4-a716-446655440000'
               content:
                 type: string
                 minLength: 10
@@ -1445,6 +1455,7 @@ components:
               choices:
                 type: array
                 minItems: 2
+                maxItems: 4
                 items:
                   type: object
                   properties:
@@ -1453,17 +1464,34 @@ components:
                       minLength: 1
                       maxLength: 500
                       example: 'Paris'
-                    is_correct:
+                    is_correct_answer:
                       type: boolean
+                      description: 'Exactly one choice must be marked as correct'
                       example: true
                   required:
                     - content
-                    - is_correct
+                    - is_correct_answer
             required:
               - content
               - choices
       required:
         - questions
+      example:
+        questions:
+          - id: null
+            content: 'What is 2 + 2?'
+            choices:
+              - content: '3'
+                is_correct_answer: false
+              - content: '4'
+                is_correct_answer: true
+          - id: '550e8400-e29b-41d4-a716-446655440000'
+            content: 'Updated: What is the capital of France?'
+            choices:
+              - content: 'London'
+                is_correct_answer: false
+              - content: 'Paris'
+                is_correct_answer: true
 
     # ==========================================
     # Submission Schemas

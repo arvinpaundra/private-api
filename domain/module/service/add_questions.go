@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"github.com/arvinpaundra/private-api/domain/module/constant"
 	"github.com/arvinpaundra/private-api/domain/module/entity"
 	"github.com/arvinpaundra/private-api/domain/module/repository"
 	"github.com/arvinpaundra/private-api/domain/shared/interfaces"
@@ -14,6 +15,7 @@ type AddQuestionsCommand struct {
 }
 
 type AddQuestion struct {
+	ID      *string              `json:"id,omitempty"`
 	Content string               `json:"content" validate:"required"`
 	Choices []*AddQuestionChoice `json:"choices" validate:"required,min=2,max=4,dive"`
 }
@@ -48,35 +50,75 @@ func (s *AddQuestions) Execute(ctx context.Context, command *AddQuestionsCommand
 		return err
 	}
 
+	// Load existing questions for the module
+	existingModule, err := s.moduleReader.FindModuleDetailBySlug(ctx, module.Slug, s.authStorage.GetUserId())
+	if err != nil {
+		return err
+	}
+
+	// Create a map of existing questions by ID for quick lookup
+	existingQuestions := make(map[string]*entity.Question)
+	for _, q := range existingModule.Questions {
+		existingQuestions[q.ID] = q
+	}
+
 	// Process each question
 	for _, questionCmd := range command.Questions {
-		// Create new question
-		question := entity.NewQuestion(module.ID, questionCmd.Content)
-
-		// Generate slug for question
-		err = question.GenSlug()
-		if err != nil {
-			return err
-		}
-
-		// Add choices to question
-		for _, choiceCmd := range questionCmd.Choices {
-			choice := entity.NewQuestionChoice(question.ID, choiceCmd.Content)
-			if choiceCmd.IsCorrectAnswer {
-				choice.SetAsCorrectAnswer()
+		if questionCmd.ID != nil && *questionCmd.ID != "" {
+			// Update existing question
+			existingQuestion, exists := existingQuestions[*questionCmd.ID]
+			if !exists {
+				return constant.ErrQuestionNotFound
 			}
 
-			question.AddChoice(choice)
-		}
+			// Update question content
+			existingQuestion.UpdateContent(questionCmd.Content)
 
-		// Validate choices
-		err = question.IsValidChoices()
-		if err != nil {
-			return err
-		}
+			// Clear existing choices and add new ones
+			existingQuestion.ClearChoices()
 
-		// Add question to module
-		module.AddQuestion(question)
+			for _, choiceCmd := range questionCmd.Choices {
+				choice := entity.NewQuestionChoice(existingQuestion.ID, choiceCmd.Content)
+				if choiceCmd.IsCorrectAnswer {
+					choice.SetAsCorrectAnswer()
+				}
+				existingQuestion.AddChoice(choice)
+			}
+
+			// Validate choices
+			err = existingQuestion.IsValidChoices()
+			if err != nil {
+				return err
+			}
+
+			// Add updated question to module
+			module.AddQuestion(existingQuestion)
+		} else {
+			// Create new question
+			question, err := entity.NewQuestion(module.ID, questionCmd.Content)
+			if err != nil {
+				return err
+			}
+
+			// Add choices to question
+			for _, choiceCmd := range questionCmd.Choices {
+				choice := entity.NewQuestionChoice(question.ID, choiceCmd.Content)
+				if choiceCmd.IsCorrectAnswer {
+					choice.SetAsCorrectAnswer()
+				}
+
+				question.AddChoice(choice)
+			}
+
+			// Validate choices
+			err = question.IsValidChoices()
+			if err != nil {
+				return err
+			}
+
+			// Add question to module
+			module.AddQuestion(question)
+		}
 	}
 
 	// Begin transaction
@@ -86,7 +128,8 @@ func (s *AddQuestions) Execute(ctx context.Context, command *AddQuestionsCommand
 	}
 
 	// Save module (which will cascade to questions)
-	if err := tx.ModuleWriter().Save(ctx, module); err != nil {
+	err = tx.ModuleWriter().Save(ctx, module)
+	if err != nil {
 		if uowErr := tx.Rollback(); uowErr != nil {
 			return uowErr
 		}

@@ -19,16 +19,21 @@ type Question struct {
 	Choices []*QuestionChoice
 }
 
-func NewQuestion(moduleID, content string) *Question {
+func NewQuestion(moduleID, content string) (*Question, error) {
 	question := &Question{
 		ID:       util.GenerateUUID(),
 		ModuleID: moduleID,
 		Content:  content,
 	}
 
+	err := question.GenSlug()
+	if err != nil {
+		return nil, err
+	}
+
 	question.MarkCreate()
 
-	return question
+	return question, nil
 }
 
 func (q *Question) GenSlug() error {
@@ -43,15 +48,15 @@ func (q *Question) GenSlug() error {
 }
 
 func (q *Question) IsValidChoices() error {
-	if len(q.Choices) < 2 {
-		return constant.ErrMinTwoChoices
-	} else if len(q.Choices) > 4 {
-		return constant.ErrMaxFourChoices
-	}
+	counter := 0
 
 	hasCorrectAnswer := false
 
 	for _, choice := range q.Choices {
+		if choice.IsRemoved() {
+			continue
+		}
+
 		if choice.IsCorrectAnswer {
 			// only one correct answer is allowed
 			if hasCorrectAnswer {
@@ -60,10 +65,18 @@ func (q *Question) IsValidChoices() error {
 
 			hasCorrectAnswer = true
 		}
+
+		counter++
 	}
 
 	if !hasCorrectAnswer {
 		return constant.ErrNoCorrectAnswer
+	}
+
+	if counter < 2 {
+		return constant.ErrMinTwoChoices
+	} else if counter > 4 {
+		return constant.ErrMaxFourChoices
 	}
 
 	return nil
@@ -71,6 +84,20 @@ func (q *Question) IsValidChoices() error {
 
 func (q *Question) AddChoice(choice *QuestionChoice) {
 	q.Choices = append(q.Choices, choice)
+}
+
+func (q *Question) UpdateContent(content string) {
+	q.Content = content
+	q.MarkUpdate()
+}
+
+func (q *Question) ClearChoices() {
+	// Mark existing choices for removal before clearing
+	for _, choice := range q.Choices {
+		choice.MarkRemove()
+	}
+
+	q.MarkUpdate()
 }
 
 type QuestionChoice struct {

@@ -10,3 +10,6 @@
 
 # builds
 /bin
+
+# debugs
+__debug_*

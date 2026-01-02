@@ -122,7 +122,7 @@ func (h *ModuleHandler) AddQuestions(c *gin.Context) {
 	err = svc.Execute(c.Request.Context(), &command)
 	if err != nil {
 		switch err {
-		case constant.ErrModuleNotFound:
+		case constant.ErrModuleNotFound, constant.ErrQuestionNotFound:
 			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))
 			return
 		case constant.ErrMinTwoChoices, constant.ErrMaxFourChoices, constant.ErrMultipleCorrectAnswers, constant.ErrNoCorrectAnswer:
