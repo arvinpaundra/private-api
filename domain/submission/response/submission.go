@@ -55,3 +55,34 @@ type FinalizeSubmissionResponse struct {
 	Total       int    `json:"total"`
 	Status      string `json:"status"`
 }
+
+type ModuleSubmissionGroup struct {
+	Module           *ModuleWithRelations `json:"module"`
+	TotalSubmissions int                  `json:"total_submissions"`
+	Submissions      []*SubmissionSummary `json:"submissions"`
+}
+
+type ModuleWithRelations struct {
+	ID      string   `json:"id"`
+	Title   string   `json:"title"`
+	Slug    string   `json:"slug"`
+	Grade   *Grade   `json:"grade"`
+	Subject *Subject `json:"subject"`
+}
+
+type Grade struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type Subject struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type SubmissionSummary struct {
+	StudentName    string `json:"student_name"`
+	TotalCorrect   int    `json:"total_correct"`
+	TotalQuestions int    `json:"total_questions"`
+	SubmittedAt    string `json:"submitted_at"`
+}

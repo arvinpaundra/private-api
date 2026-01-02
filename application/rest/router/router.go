@@ -38,6 +38,7 @@ func Register(g *gin.Engine, rdb *redis.Client, db *gorm.DB) *gin.Engine {
 	subjectRouter.Private(v1)
 	gradeRouter.Private(v1)
 	moduleRouter.Private(v1)
+	submissionRouter.Private(v1)
 
 	return g
 }

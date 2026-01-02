@@ -2,6 +2,7 @@ package submission
 
 import (
 	"github.com/arvinpaundra/private-api/application/rest/handler"
+	"github.com/arvinpaundra/private-api/application/rest/middleware"
 	"github.com/arvinpaundra/private-api/core/validator"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -17,6 +18,15 @@ func NewSubmissionRouter(db *gorm.DB, vld *validator.Validator) *SubmissionRoute
 		db:  db,
 		vld: vld,
 	}
+}
+
+func (r *SubmissionRouter) Private(g *gin.RouterGroup) {
+	h := handler.NewSubmissionHandler(r.db, r.vld)
+	m := middleware.NewAuthenticate(r.db)
+
+	submission := g.Group("/submissions", m.Authenticate())
+
+	submission.GET("", h.GetAllSubmissions)
 }
 
 func (r *SubmissionRouter) Public(g *gin.RouterGroup) {

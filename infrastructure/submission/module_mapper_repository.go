@@ -9,6 +9,7 @@ import (
 	"github.com/arvinpaundra/private-api/domain/submission/entity"
 	"github.com/arvinpaundra/private-api/domain/submission/repository"
 	"github.com/arvinpaundra/private-api/infrastructure/module"
+	"github.com/arvinpaundra/private-api/model"
 	"gorm.io/gorm"
 )
 
@@ -134,4 +135,48 @@ func (a *ModuleACLAdapter) GetTotalQuestions(ctx context.Context, moduleSlug str
 	}
 
 	return total, nil
+}
+
+func (a *ModuleACLAdapter) GetAllPublishedModules(ctx context.Context, keyword string) ([]*entity.Module, error) {
+	var moduleModels []model.Module
+
+	query := a.db.Model(&model.Module{}).
+		WithContext(ctx).
+		Preload("Subject").
+		Preload("Grade").
+		Where("is_published = ?", true).
+		Where("deleted_at IS NULL")
+
+	if keyword != "" {
+		query = query.Where("title ILIKE ?", "%"+keyword+"%")
+	}
+
+	err := query.
+		Order("created_at DESC").
+		Find(&moduleModels).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Map to submission domain entities
+	modules := make([]*entity.Module, len(moduleModels))
+	for i, moduleModel := range moduleModels {
+		modules[i] = &entity.Module{
+			ID:    moduleModel.ID.String(),
+			Slug:  moduleModel.Slug,
+			Title: moduleModel.Title,
+			Grade: &entity.Grade{
+				ID:   moduleModel.Grade.ID.String(),
+				Name: moduleModel.Grade.Name,
+			},
+			Subject: &entity.Subject{
+				ID:   moduleModel.Subject.ID.String(),
+				Name: moduleModel.Subject.Name,
+			},
+		}
+	}
+
+	return modules, nil
 }

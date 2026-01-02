@@ -25,13 +25,6 @@ info:
     Authorization: Bearer <access_token>
     ```
 
-    Access tokens expire after 15 minutes. Use the refresh token endpoint to obtain new tokens.
-
-    ## Rate Limiting
-
-    - **Authenticated users**: 1000 requests per hour
-    - **Public endpoints**: 100 requests per hour per IP
-
   version: 1.0.0
   license:
     name: MIT
@@ -692,9 +685,43 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
   # ==========================================
+  # Submission Management (Admin)
+  # ==========================================
+  /v1/submissions:
+    get:
+      tags:
+        - Submissions
+      summary: Get all submissions grouped by modules (Admin)
+      description: |
+        Retrieves all submitted submissions grouped by modules with their associated grade and subject.
+        Returns module details, total submissions count, and list of students who completed each module.
+        Only returns submissions with status "submitted".
+      operationId: getAllSubmissions
+      parameters:
+        - $ref: '#/components/parameters/Keyword'
+      responses:
+        '200':
+          description: Submissions retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ModuleSubmissionGroup'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ==========================================
   # Quiz Submission (Public)
   # ==========================================
-  /v1/quiz/{module_slug}/submissions:
+  /v1/modules/{module_slug}/submissions:
     post:
       tags:
         - Submissions
@@ -736,7 +763,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /v1/quiz/{module_slug}/submissions/{submission_code}/answers:
+  /v1/modules/{module_slug}/submissions/{submission_code}/answers:
     post:
       tags:
         - Submissions
@@ -774,7 +801,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /v1/quiz/{module_slug}/submissions/{submission_code}/finalize:
+  /v1/modules/{module_slug}/submissions/{submission_code}/finalize:
     patch:
       tags:
         - Submissions
@@ -1522,3 +1549,97 @@ components:
         - score
         - total
         - status
+
+    ModuleSubmissionGroup:
+      type: object
+      properties:
+        module:
+          $ref: '#/components/schemas/ModuleWithRelations'
+        total_submissions:
+          type: integer
+          description: Total number of submitted submissions for this module
+          example: 15
+        submissions:
+          type: array
+          description: List of students who submitted the module
+          items:
+            $ref: '#/components/schemas/SubmissionSummary'
+      required:
+        - module
+        - total_submissions
+        - submissions
+
+    ModuleWithRelations:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: '550e8400-e29b-41d4-a716-446655440000'
+        title:
+          type: string
+          example: 'Introduction to Algebra'
+        slug:
+          type: string
+          example: 'introduction-to-algebra'
+        grade:
+          $ref: '#/components/schemas/GradeInfo'
+        subject:
+          $ref: '#/components/schemas/SubjectInfo'
+      required:
+        - id
+        - title
+        - slug
+        - grade
+        - subject
+
+    GradeInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: '550e8400-e29b-41d4-a716-446655440000'
+        name:
+          type: string
+          example: 'Grade 10'
+      required:
+        - id
+        - name
+
+    SubjectInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: '550e8400-e29b-41d4-a716-446655440000'
+        name:
+          type: string
+          example: 'Mathematics'
+      required:
+        - id
+        - name
+
+    SubmissionSummary:
+      type: object
+      properties:
+        student_name:
+          type: string
+          description: Name of the student who submitted
+          example: 'John Doe'
+        score:
+          type: number
+          format: float
+          description: Score as a decimal between 0.0 and 1.0 (correct answers / total questions)
+          minimum: 0.0
+          maximum: 1.0
+          example: 0.85
+        submitted_at:
+          type: string
+          description: Submission timestamp in format YYYY-MM-DD HH:MM:SS
+          example: '2026-01-02 10:30:45'
+      required:
+        - student_name
+        - score
+        - submitted_at

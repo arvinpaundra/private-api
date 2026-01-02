@@ -164,3 +164,62 @@ func (r *SubmissionReaderRepository) FindAllSubmissions(ctx context.Context, mod
 
 	return submissions, nil
 }
+
+func (r *SubmissionReaderRepository) FindAllSubmittedGroupedByModule(ctx context.Context, moduleIDs []string) (map[string][]*entity.Submission, error) {
+	if len(moduleIDs) == 0 {
+		return make(map[string][]*entity.Submission), nil
+	}
+
+	var submissionModels []model.Submission
+
+	err := r.db.Model(&model.Submission{}).
+		WithContext(ctx).
+		Preload("Answers").
+		Where("module_id IN ?", moduleIDs).
+		Where("status = ?", constant.Submitted).
+		Order("module_id, submitted_at DESC").
+		Find(&submissionModels).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Group submissions by module ID
+	grouped := make(map[string][]*entity.Submission)
+
+	for _, submissionModel := range submissionModels {
+		var submittedAt *time.Time
+		if submissionModel.SubmittedAt.Valid {
+			submittedAt = &submissionModel.SubmittedAt.Time
+		}
+
+		submission := &entity.Submission{
+			ID:             submissionModel.ID.String(),
+			ModuleID:       submissionModel.ModuleID.String(),
+			Code:           submissionModel.Code,
+			StudentName:    submissionModel.StudentName,
+			Status:         constant.SubmissionStatus(submissionModel.Status),
+			TotalQuestions: submissionModel.TotalQuestions,
+			SubmittedAt:    submittedAt,
+			Answers:        make([]*entity.SubmissionAnswer, len(submissionModel.Answers)),
+		}
+
+		// Map answers for score calculation
+		for j, answerModel := range submissionModel.Answers {
+			submission.Answers[j] = &entity.SubmissionAnswer{
+				ID:           answerModel.ID.String(),
+				SubmissionID: answerModel.SubmissionID.String(),
+				QuestionSlug: answerModel.QuestionSlug,
+				Question:     answerModel.Question,
+				Answer:       answerModel.Answer,
+				IsCorrect:    answerModel.IsCorrect,
+			}
+		}
+
+		moduleID := submissionModel.ModuleID.String()
+		grouped[moduleID] = append(grouped[moduleID], submission)
+	}
+
+	return grouped, nil
+}

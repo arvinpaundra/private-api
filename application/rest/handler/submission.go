@@ -141,3 +141,26 @@ func (h *SubmissionHandler) FinalizeSubmission(c *gin.Context) {
 
 	c.JSON(http.StatusOK, format.SuccessOK("submission finalized successfully", result))
 }
+
+func (h *SubmissionHandler) GetAllSubmissions(c *gin.Context) {
+	var query service.FindAllSubmissionQuery
+
+	err := c.ShouldBindQuery(&query)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, format.UnprocessableEntity(err.Error()))
+		return
+	}
+
+	svc := service.NewFindAllSubmission(
+		submission.NewSubmissionReaderRepository(h.db),
+		submission.NewModuleACLAdapter(h.db),
+	)
+
+	result, err := svc.Execute(c.Request.Context(), &query)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, format.InternalServerError())
+		return
+	}
+
+	c.JSON(http.StatusOK, format.SuccessOK("submissions retrieved successfully", result))
+}
