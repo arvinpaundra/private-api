@@ -34,6 +34,7 @@ func (r *ModuleRouter) Private(g *gin.RouterGroup) {
 	{
 		moduleDetail.GET("", h.FindDetailModule)
 		moduleDetail.DELETE("", h.DeleteModule)
+		moduleDetail.GET("/questions", h.FindDetailModuleQuestions)
 		moduleDetail.PATCH("/publish", h.TogglePublishModule)
 
 		question := moduleDetail.Group("/questions")

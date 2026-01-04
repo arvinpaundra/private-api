@@ -149,6 +149,33 @@ func (h *ModuleHandler) FindDetailModule(c *gin.Context) {
 	svc := service.NewFindDetailModule(
 		shared.NewAuthStorage(c),
 		module.NewModuleReaderRepository(h.db),
+	)
+
+	result, err := svc.Execute(c.Request.Context(), &command)
+	if err != nil {
+		switch err {
+		case constant.ErrModuleNotFound:
+			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))
+			return
+		default:
+			c.JSON(http.StatusInternalServerError, format.InternalServerError())
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, format.SuccessOK("module retrieved successfully", result))
+}
+
+func (h *ModuleHandler) FindDetailModuleQuestions(c *gin.Context) {
+	slug := c.Param("module_slug")
+
+	command := service.FindDetailModuleQuestionsCommand{
+		Slug: slug,
+	}
+
+	svc := service.NewFindDetailModuleQuestions(
+		shared.NewAuthStorage(c),
+		module.NewModuleReaderRepository(h.db),
 		module.NewSubjectACLAdapter(h.db, shared.NewAuthStorage(c)),
 		module.NewGradeACLAdapter(h.db, shared.NewAuthStorage(c)),
 	)
@@ -165,7 +192,7 @@ func (h *ModuleHandler) FindDetailModule(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, format.SuccessOK("module retrieved successfully", result))
+	c.JSON(http.StatusOK, format.SuccessOK("module with questions retrieved successfully", result))
 }
 
 func (h *ModuleHandler) TogglePublishModule(c *gin.Context) {
