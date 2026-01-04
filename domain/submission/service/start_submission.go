@@ -49,6 +49,12 @@ func (s *StartSubmission) Execute(ctx context.Context, command *StartSubmissionC
 
 	submission.SetTotalQuestions(totalQuestions)
 
+	// Get first question slug
+	firstQuestionSlug, err := s.moduleACL.GetFirstQuestionSlug(ctx, module.Slug)
+	if err != nil {
+		return nil, err
+	}
+
 	// Save via UnitOfWork
 	tx, err := s.uow.Begin()
 	if err != nil {
@@ -70,7 +76,8 @@ func (s *StartSubmission) Execute(ctx context.Context, command *StartSubmissionC
 
 	// Return submission code and status
 	return &response.StartSubmissionResponse{
-		Code:   submission.Code,
-		Status: submission.Status.String(),
+		Code:              submission.Code,
+		Status:            submission.Status.String(),
+		FirstQuestionSlug: firstQuestionSlug,
 	}, nil
 }

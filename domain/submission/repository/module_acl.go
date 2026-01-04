@@ -13,4 +13,5 @@ type ModuleACL interface {
 	GetQuestionBySlug(ctx context.Context, moduleSlug, questionSlug string) (*entity.Question, error)
 	GetTotalQuestions(ctx context.Context, moduleSlug string) (int, error)
 	GetAllPublishedModules(ctx context.Context, keyword string) ([]*entity.Module, error)
+	GetFirstQuestionSlug(ctx context.Context, moduleSlug string) (*string, error)
 }

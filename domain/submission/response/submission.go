@@ -38,8 +38,9 @@ type SubmissionDetail struct {
 }
 
 type StartSubmissionResponse struct {
-	Code   string `json:"code"`
-	Status string `json:"status"`
+	Code              string  `json:"code"`
+	Status            string  `json:"status"`
+	FirstQuestionSlug *string `json:"first_question_slug"`
 }
 
 type SubmitAnswerResponse struct {

@@ -577,8 +577,10 @@ paths:
       tags:
         - Modules
       summary: Get module details (Admin)
-      description: Retrieves detailed module information including all questions
-      operationId: getModule
+      description: |
+        Retrieves basic module information without questions.
+        Includes module metadata, subject, grade, and questions count.
+      operationId: getModuleDetails
       parameters:
         - $ref: '#/components/parameters/ModuleSlug'
       responses:
@@ -592,7 +594,51 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: '#/components/schemas/ModuleDetail'
+                        $ref: '#/components/schemas/Module'
+              example:
+                meta:
+                  code: 200
+                  message: module retrieved successfully
+                data:
+                  id: '550e8400-e29b-41d4-a716-446655440000'
+                  user_id: '660e8400-e29b-41d4-a716-446655440000'
+                  subject_id: '770e8400-e29b-41d4-a716-446655440000'
+                  grade_id: '880e8400-e29b-41d4-a716-446655440000'
+                  title: 'Introduction to Algebra'
+                  slug: 'abc123def456'
+                  description: 'Basic concepts of algebra'
+                  type: 'quiz'
+                  is_published: true
+                  questions_count: 10
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Modules
+      summary: Delete a module (Admin)
+      description: Soft deletes a module by slug
+      operationId: deleteModule
+      parameters:
+        - $ref: '#/components/parameters/ModuleSlug'
+      responses:
+        '200':
+          description: Module deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                meta:
+                  code: 200
+                  message: module deleted successfully
+                data: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -616,6 +662,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
+              example:
+                meta:
+                  code: 200
+                  message: module publish status toggled successfully
+                data: null
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -624,6 +675,64 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
   /v1/modules/{module_slug}/questions:
+    get:
+      tags:
+        - Modules
+      summary: Get module with all questions (Admin)
+      description: |
+        Retrieves detailed module information including all questions and their choices.
+        Includes correct answer information for each choice.
+        Used for editing and managing module content.
+      operationId: getModuleWithQuestions
+      parameters:
+        - $ref: '#/components/parameters/ModuleSlug'
+      responses:
+        '200':
+          description: Module with questions retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ModuleDetail'
+              example:
+                meta:
+                  code: 200
+                  message: module with questions retrieved successfully
+                data:
+                  id: '550e8400-e29b-41d4-a716-446655440000'
+                  title: 'Introduction to Algebra'
+                  slug: 'abc123def456'
+                  description: 'Basic concepts of algebra'
+                  type: 'quiz'
+                  is_published: true
+                  subject:
+                    id: '770e8400-e29b-41d4-a716-446655440000'
+                    name: 'Mathematics'
+                  grade:
+                    id: '880e8400-e29b-41d4-a716-446655440000'
+                    name: 'Grade 10'
+                  questions:
+                    - id: '990e8400-e29b-41d4-a716-446655440000'
+                      content: 'What is 2 + 2?'
+                      slug: 'question-1'
+                      choices:
+                        - id: 'aa0e8400-e29b-41d4-a716-446655440000'
+                          content: '3'
+                          is_correct_answer: false
+                        - id: 'bb0e8400-e29b-41d4-a716-446655440000'
+                          content: '4'
+                          is_correct_answer: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
     post:
       tags:
         - Modules
@@ -794,6 +903,7 @@ paths:
                 data:
                   code: 'A1B2C3D4E5F6G7H8'
                   status: 'in_progress'
+                  first_question_slug: 'abc123def456'
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -1320,45 +1430,95 @@ components:
           type: string
           format: uuid
           example: '550e8400-e29b-41d4-a716-446655440000'
+        user_id:
+          type: string
+          format: uuid
+          example: '660e8400-e29b-41d4-a716-446655440000'
+        subject_id:
+          type: string
+          format: uuid
+          example: '770e8400-e29b-41d4-a716-446655440000'
+        grade_id:
+          type: string
+          format: uuid
+          example: '880e8400-e29b-41d4-a716-446655440000'
         title:
           type: string
           example: 'Introduction to Algebra'
         slug:
           type: string
-          example: 'introduction-to-algebra'
+          example: 'abc123def456'
         description:
           type: string
           nullable: true
           example: 'Basic concepts of algebra'
         type:
           type: string
-          enum: [quiz, exam]
-          example: 'quiz'
+          enum: [multiple_choice]
+          example: 'multiple_choice'
         is_published:
           type: boolean
           example: true
-        subject_name:
+        questions_count:
+          type: integer
+          description: Total number of questions in the module
+          example: 10
+        subject:
+          $ref: '#/components/schemas/SubjectInfo'
+        grade:
+          $ref: '#/components/schemas/GradeInfo'
+      required:
+        - id
+        - user_id
+        - subject_id
+        - grade_id
+        - title
+        - slug
+        - type
+        - is_published
+        - questions_count
+
+    ModuleDetail:
+      type: object
+      properties:
+        id:
           type: string
-          example: 'Mathematics'
-        grade_name:
+          format: uuid
+          example: '550e8400-e29b-41d4-a716-446655440000'
+        title:
           type: string
-          example: 'Grade 10'
+          example: 'Introduction to Algebra'
+        slug:
+          type: string
+          example: 'abc123def456'
+        description:
+          type: string
+          nullable: true
+          example: 'Basic concepts of algebra'
+        type:
+          type: string
+          enum: [multiple_choice]
+          example: 'multiple_choice'
+        is_published:
+          type: boolean
+          example: true
+        subject:
+          $ref: '#/components/schemas/SubjectInfo'
+        grade:
+          $ref: '#/components/schemas/GradeInfo'
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionWithAnswer'
       required:
         - id
         - title
         - slug
         - type
         - is_published
-
-    ModuleDetail:
-      allOf:
-        - $ref: '#/components/schemas/Module'
-        - type: object
-          properties:
-            questions:
-              type: array
-              items:
-                $ref: '#/components/schemas/Question'
+        - subject
+        - grade
+        - questions
 
     ModuleRequest:
       type: object
@@ -1431,6 +1591,50 @@ components:
         - id
         - slug
         - content
+
+    QuestionWithAnswer:
+      type: object
+      description: Question with correct answer information (Admin only)
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: '550e8400-e29b-41d4-a716-446655440000'
+        content:
+          type: string
+          example: 'What is 2 + 2?'
+        slug:
+          type: string
+          example: 'question-1'
+        choices:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChoiceWithAnswer'
+      required:
+        - id
+        - content
+        - slug
+        - choices
+
+    ChoiceWithAnswer:
+      type: object
+      description: Choice with correct answer flag (Admin only)
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: '550e8400-e29b-41d4-a716-446655440000'
+        content:
+          type: string
+          example: '4'
+        is_correct_answer:
+          type: boolean
+          description: Whether this choice is the correct answer
+          example: true
+      required:
+        - id
+        - content
+        - is_correct_answer
 
     AddQuestionsRequest:
       type: object
@@ -1554,6 +1758,11 @@ components:
           type: string
           enum: [in_progress, submitted, canceled]
           example: 'in_progress'
+        first_question_slug:
+          type: string
+          nullable: true
+          description: Slug of the first question in the module. Null if module has no questions.
+          example: 'abc123def456'
       required:
         - code
         - status

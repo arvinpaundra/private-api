@@ -180,3 +180,28 @@ func (a *ModuleACLAdapter) GetAllPublishedModules(ctx context.Context, keyword s
 
 	return modules, nil
 }
+
+func (a *ModuleACLAdapter) GetFirstQuestionSlug(ctx context.Context, moduleSlug string) (*string, error) {
+	var question model.Question
+
+	err := a.db.Model(&model.Question{}).
+		WithContext(ctx).
+		Select("questions.slug").
+		Joins("JOIN modules ON modules.id = questions.module_id").
+		Where("modules.slug = ?", moduleSlug).
+		Where("modules.is_published = true").
+		Where("modules.deleted_at IS NULL").
+		Where("questions.deleted_at IS NULL").
+		Order("questions.created_at ASC").
+		First(&question).
+		Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &question.Slug, nil
+}
