@@ -10,11 +10,10 @@ import (
 	"github.com/arvinpaundra/private-api/application/rest/router/submission"
 	"github.com/arvinpaundra/private-api/core/validator"
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
-func Register(g *gin.Engine, rdb *redis.Client, db *gorm.DB) *gin.Engine {
+func Register(g *gin.Engine, db *gorm.DB) *gin.Engine {
 	g.Use(middleware.Cors())
 	g.Use(gin.Recovery())
 	g.Use(gin.LoggerWithConfig(gin.LoggerConfig{
@@ -23,7 +22,7 @@ func Register(g *gin.Engine, rdb *redis.Client, db *gorm.DB) *gin.Engine {
 
 	v1 := g.Group("/v1")
 
-	authRouter := auth.NewAuthRouter(db, rdb, validator.NewValidator())
+	authRouter := auth.NewAuthRouter(db, validator.NewValidator())
 	subjectRouter := subject.NewSubjectRouter(db, validator.NewValidator())
 	gradeRouter := grade.NewGradeRouter(db, validator.NewValidator())
 	moduleRouter := module.NewModuleRouter(db, validator.NewValidator())

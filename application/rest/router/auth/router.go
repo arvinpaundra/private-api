@@ -5,24 +5,20 @@ import (
 	"github.com/arvinpaundra/private-api/application/rest/middleware"
 	"github.com/arvinpaundra/private-api/core/validator"
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
 type AuthRouter struct {
 	db  *gorm.DB
-	rdb *redis.Client
 	vld *validator.Validator
 }
 
 func NewAuthRouter(
 	db *gorm.DB,
-	rdb *redis.Client,
 	vld *validator.Validator,
 ) *AuthRouter {
 	return &AuthRouter{
 		db:  db,
-		rdb: rdb,
 		vld: vld,
 	}
 }

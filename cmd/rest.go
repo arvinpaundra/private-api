@@ -10,7 +10,6 @@ import (
 	"github.com/arvinpaundra/private-api/application/rest/router"
 	"github.com/arvinpaundra/private-api/config"
 	"github.com/arvinpaundra/private-api/core/util"
-	"github.com/arvinpaundra/private-api/database/memorydb"
 	"github.com/arvinpaundra/private-api/database/relationaldb"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
@@ -26,11 +25,9 @@ var restCmd = &cobra.Command{
 
 		relationaldb.NewConnection(relationaldb.NewPostgres())
 
-		memorydb.NewInMemoryConnection(memorydb.NewRedisDB())
-
 		g := gin.New()
 
-		app := router.Register(g, memorydb.GetInMemoryConnection(), relationaldb.GetConnection())
+		app := router.Register(g, relationaldb.GetConnection())
 
 		srv := http.Server{
 			Addr:    fmt.Sprintf(":%s", port),
@@ -50,9 +47,6 @@ var restCmd = &cobra.Command{
 			},
 			"postgres": func(_ context.Context) error {
 				return relationaldb.Close()
-			},
-			"redis": func(_ context.Context) error {
-				return memorydb.Close()
 			},
 		})
 
