@@ -6,6 +6,7 @@ import (
 	"github.com/arvinpaundra/private-api/domain/dashboard/repository"
 	"github.com/arvinpaundra/private-api/domain/dashboard/response"
 	"github.com/arvinpaundra/private-api/domain/shared/interfaces"
+	"golang.org/x/sync/errgroup"
 )
 
 type GetDashboardStatistics struct {
@@ -44,69 +45,82 @@ func (s *GetDashboardStatistics) Execute(ctx context.Context) (*response.Dashboa
 		return nil, err
 	}
 
-	// Aggregate counts from all domains via ACLs in parallel
-	type result struct {
-		modules     int
-		subjects    int
-		grades      int
-		submissions int
-		err         error
-	}
+	// Aggregate counts from all domains using errgroup
+	var (
+		modulesCount     int
+		subjectsCount    int
+		gradesCount      int
+		submissionsCount int
+	)
 
-	resultChan := make(chan result, 1)
+	g, ctx := errgroup.WithContext(ctx)
 
-	go func() {
-		var res result
-
-		// Count modules
-		modules, err := s.moduleACL.CountModulesByUserID(ctx, userID)
+	// Count modules in parallel
+	g.Go(func() error {
+		count, err := s.countModules(ctx, userID)
 		if err != nil {
-			res.err = err
-			resultChan <- res
-			return
+			return err
 		}
-		res.modules = modules
+		modulesCount = count
+		return nil
+	})
 
-		// Count subjects
-		subjects, err := s.subjectACL.CountSubjectsByUserID(ctx, userID)
+	// Count subjects in parallel
+	g.Go(func() error {
+		count, err := s.countSubjects(ctx, userID)
 		if err != nil {
-			res.err = err
-			resultChan <- res
-			return
+			return err
 		}
-		res.subjects = subjects
+		subjectsCount = count
+		return nil
+	})
 
-		// Count grades
-		grades, err := s.gradeACL.CountGradesByUserID(ctx, userID)
+	// Count grades in parallel
+	g.Go(func() error {
+		count, err := s.countGrades(ctx, userID)
 		if err != nil {
-			res.err = err
-			resultChan <- res
-			return
+			return err
 		}
-		res.grades = grades
+		gradesCount = count
+		return nil
+	})
 
-		// Count submitted submissions (not scoped to user, global count)
-		submissions, err := s.submissionACL.CountSubmittedSubmissions(ctx)
+	// Count submitted submissions in parallel
+	g.Go(func() error {
+		count, err := s.countSubmissions(ctx)
 		if err != nil {
-			res.err = err
-			resultChan <- res
-			return
+			return err
 		}
-		res.submissions = submissions
+		submissionsCount = count
+		return nil
+	})
 
-		resultChan <- res
-	}()
-
-	res := <-resultChan
-	if res.err != nil {
-		return nil, res.err
+	// Wait for all goroutines to complete
+	if err := g.Wait(); err != nil {
+		return nil, err
 	}
 
 	return &response.DashboardStatistics{
 		UserFullname:              user.Fullname,
-		TotalModules:              res.modules,
-		TotalSubjects:             res.subjects,
-		TotalGrades:               res.grades,
-		TotalSubmittedSubmissions: res.submissions,
+		TotalModules:              modulesCount,
+		TotalSubjects:             subjectsCount,
+		TotalGrades:               gradesCount,
+		TotalSubmittedSubmissions: submissionsCount,
 	}, nil
+}
+
+func (s *GetDashboardStatistics) countModules(ctx context.Context, userID string) (int, error) {
+	return s.moduleACL.CountModulesByUserID(ctx, userID)
+}
+
+func (s *GetDashboardStatistics) countSubjects(ctx context.Context, userID string) (int, error) {
+	return s.subjectACL.CountSubjectsByUserID(ctx, userID)
+}
+
+func (s *GetDashboardStatistics) countGrades(ctx context.Context, userID string) (int, error) {
+	return s.gradeACL.CountGradesByUserID(ctx, userID)
+}
+
+func (s *GetDashboardStatistics) countSubmissions(ctx context.Context) (int, error) {
+	return s.submissionACL.CountSubmittedSubmissions(ctx)
 }
