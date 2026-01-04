@@ -235,3 +235,37 @@ func (h *ModuleHandler) FindPublishedQuestion(c *gin.Context) {
 
 	c.JSON(http.StatusOK, format.SuccessOK("question retrieved successfully", result))
 }
+
+func (h *ModuleHandler) DeleteModule(c *gin.Context) {
+	slug := c.Param("module_slug")
+
+	command := service.DeleteModuleCommand{
+		Slug: slug,
+	}
+
+	verrs := h.vld.Validate(command)
+	if verrs != nil {
+		c.JSON(http.StatusBadRequest, format.BadRequest("invalid request", verrs))
+		return
+	}
+
+	svc := service.NewDeleteModule(
+		shared.NewAuthStorage(c),
+		module.NewModuleReaderRepository(h.db),
+		module.NewModuleWriterRepository(h.db),
+	)
+
+	err := svc.Execute(c.Request.Context(), &command)
+	if err != nil {
+		switch err {
+		case constant.ErrModuleNotFound:
+			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))
+			return
+		default:
+			c.JSON(http.StatusInternalServerError, format.InternalServerError())
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, format.SuccessOK("module deleted successfully", nil))
+}
