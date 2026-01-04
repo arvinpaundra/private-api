@@ -47,7 +47,7 @@ func (h *ModuleHandler) CreateModule(c *gin.Context) {
 		module.NewGradeACLAdapter(h.db, shared.NewAuthStorage(c)),
 	)
 
-	err = svc.Execute(c.Request.Context(), &command)
+	slug, err := svc.Execute(c.Request.Context(), &command)
 	if err != nil {
 		switch err {
 		case constant.ErrSubjectNotFound, constant.ErrGradeNotFound, constant.ErrModuleNotFound:
@@ -59,7 +59,9 @@ func (h *ModuleHandler) CreateModule(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusCreated, format.SuccessCreated("module created successfully", nil))
+	c.JSON(http.StatusCreated, format.SuccessCreated("module created successfully", gin.H{
+		"slug": slug,
+	}))
 }
 
 func (h *ModuleHandler) FindAllModules(c *gin.Context) {

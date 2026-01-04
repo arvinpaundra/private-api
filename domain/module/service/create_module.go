@@ -37,37 +37,38 @@ func NewCreateModule(
 	}
 }
 
-func (s *CreateModule) Execute(ctx context.Context, command *CreateModuleCommand) error {
+func (s *CreateModule) Execute(ctx context.Context, command *CreateModuleCommand) (string, error) {
 	// check if subject exists via ACL
 	isSubjectExist, err := s.subjectACL.IsSubjectExist(ctx, command.SubjectID, s.authStorage.GetUserId())
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if !isSubjectExist {
-		return constant.ErrSubjectNotFound
+		return "", constant.ErrSubjectNotFound
 	}
 
 	// check if grade exists via ACL
 	isGradeExist, err := s.gradeACL.IsGradeExist(ctx, command.GradeID, s.authStorage.GetUserId())
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if !isGradeExist {
-		return constant.ErrGradeNotFound
+		return "", constant.ErrGradeNotFound
 	}
 
 	// create module
-	module := entity.NewModule(s.authStorage.GetUserId(), command.SubjectID, command.GradeID, command.Title, command.Description)
-
-	module.GenSlug()
+	module, err := entity.NewModule(s.authStorage.GetUserId(), command.SubjectID, command.GradeID, command.Title, command.Description)
+	if err != nil {
+		return "", err
+	}
 
 	// store module to persistent storage
 	err = s.moduleWriter.Save(ctx, module)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return module.Slug, nil
 }

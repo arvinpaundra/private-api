@@ -24,7 +24,7 @@ type Module struct {
 	Questions []*Question
 }
 
-func NewModule(userID, subjectID, gradeID, title string, description *string) *Module {
+func NewModule(userID, subjectID, gradeID, title string, description *string) (*Module, error) {
 	module := &Module{
 		ID:          util.GenerateUUID(),
 		UserID:      userID,
@@ -36,9 +36,14 @@ func NewModule(userID, subjectID, gradeID, title string, description *string) *M
 		IsPublished: false,
 	}
 
+	err := module.GenSlug()
+	if err != nil {
+		return nil, err
+	}
+
 	module.MarkCreate()
 
-	return module
+	return module, nil
 }
 
 func (m *Module) GenSlug() error {
