@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: private-api-config
+  namespace: private
+data:
+  APP_MODE: 'production'

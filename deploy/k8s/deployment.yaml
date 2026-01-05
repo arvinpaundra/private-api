@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Deployment
+metadata:
+  name: private-api-deployment
+  namespace: private
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: private-api
+  template:
+    metadata:
+      labels:
+        app: private-api
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: private-api
+          image: IMAGE_PLACEHOLDER
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: private-api-config
+            - secretRef:
+                name: private-api-secret
+          resources:
+            requests:
+              memory: '128Mi'
+              cpu: '100m'
+            limits:
+              memory: '256Mi'
+              cpu: '500m'
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
