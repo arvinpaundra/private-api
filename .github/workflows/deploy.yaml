@@ -65,7 +65,7 @@ jobs:
           DB_TIMEZONE: '${{ secrets.DB_TIMEZONE }}'
           JWT_SECRET_KEY: '${{ secrets.JWT_SECRET_KEY }}'
         run: |
-          envsubst < deploy/k8s/secret.template.yaml | kubectl apply -f -
+          envsubst < deploy/k8s/secret.yaml | kubectl apply -f -
 
       # Deploy application
       - name: Deploy application
