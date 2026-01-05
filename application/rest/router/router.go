@@ -5,6 +5,7 @@ import (
 	"github.com/arvinpaundra/private-api/application/rest/router/auth"
 	"github.com/arvinpaundra/private-api/application/rest/router/dashboard"
 	"github.com/arvinpaundra/private-api/application/rest/router/grade"
+	"github.com/arvinpaundra/private-api/application/rest/router/health"
 	"github.com/arvinpaundra/private-api/application/rest/router/module"
 	"github.com/arvinpaundra/private-api/application/rest/router/subject"
 	"github.com/arvinpaundra/private-api/application/rest/router/submission"
@@ -19,6 +20,10 @@ func Register(g *gin.Engine, db *gorm.DB) *gin.Engine {
 	g.Use(gin.LoggerWithConfig(gin.LoggerConfig{
 		SkipPaths: []string{"/metrics"},
 	}))
+
+	// Health check endpoints
+	healthRouter := health.NewHealthRouter(db)
+	healthRouter.Register(g)
 
 	v1 := g.Group("/v1")
 
