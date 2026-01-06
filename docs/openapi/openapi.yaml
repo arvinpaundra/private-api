@@ -767,6 +767,47 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /v1/modules/{module_slug}/published:
+    get:
+      tags:
+        - Modules
+      summary: Get published module details (Public)
+      description: Retrieves details of a published module without requiring authentication. Only returns modules where is_published is true.
+      operationId: getPublishedModule
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/ModuleSlug'
+      responses:
+        '200':
+          description: Module retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Module'
+              example:
+                meta:
+                  code: 200
+                  message: module retrieved successfully
+                data:
+                  id: '550e8400-e29b-41d4-a716-446655440000'
+                  user_id: '550e8400-e29b-41d4-a716-446655440001'
+                  subject_id: '550e8400-e29b-41d4-a716-446655440002'
+                  grade_id: '550e8400-e29b-41d4-a716-446655440003'
+                  slug: 'linear-equations-quiz'
+                  title: 'Linear Equations Quiz'
+                  type: 'quiz'
+                  is_published: true
+                  questions_count: 10
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /v1/modules/{module_slug}/questions/{question_slug}:
     get:
       tags:

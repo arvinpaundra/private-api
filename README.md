@@ -17,11 +17,7 @@ A comprehensive RESTful API for managing educational quizzes, assessments, and s
 - [Configuration](#configuration)
 - [Running the Application](#running-the-application)
 - [API Documentation](#api-documentation)
-- [Database Migrations](#database-migrations)
-- [Testing](#testing)
 - [Deployment](#deployment)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Overview
 
@@ -365,7 +361,8 @@ Modules (Protected)
   DELETE /v1/modules/:slug                    - Delete module
 
 Modules (Public)
-  GET    /v1/modules/:slug/questions/:question_slug  - Get published question
+  GET    /v1/modules/:slug/published                     - Get published module details
+  GET    /v1/modules/:slug/questions/:question_slug      - Get published question
 
 Submissions (Public)
   POST   /v1/modules/:slug/submissions                     - Start submission

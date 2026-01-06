@@ -181,6 +181,34 @@ func (h *ModuleHandler) FindDetailModule(c *gin.Context) {
 	c.JSON(http.StatusOK, format.SuccessOK("module retrieved successfully", result))
 }
 
+func (h *ModuleHandler) FindPublishedModule(c *gin.Context) {
+	slug := c.Param("module_slug")
+
+	command := service.FindPublishedModuleCommand{
+		Slug: slug,
+	}
+
+	svc := service.NewFindPublishedModule(
+		module.NewModuleReaderRepository(h.db),
+	)
+
+	result, err := svc.Execute(c.Request.Context(), &command)
+	if err != nil {
+		h.logger.Error("failed to find published module", zap.Error(err))
+
+		switch err {
+		case constant.ErrModuleNotFound:
+			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))
+			return
+		default:
+			c.JSON(http.StatusInternalServerError, format.InternalServerError())
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, format.SuccessOK("module retrieved successfully", result))
+}
+
 func (h *ModuleHandler) FindDetailModuleQuestions(c *gin.Context) {
 	slug := c.Param("module_slug")
 

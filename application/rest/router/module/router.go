@@ -55,6 +55,8 @@ func (r *ModuleRouter) Public(g *gin.RouterGroup) {
 
 	module := g.Group("/modules/:module_slug")
 	{
+		module.GET("/published", h.FindPublishedModule)
+
 		question := module.Group("/questions")
 
 		question.GET("/:question_slug", h.FindPublishedQuestion)
