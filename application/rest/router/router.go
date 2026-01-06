@@ -18,7 +18,7 @@ func Register(g *gin.Engine, db *gorm.DB) *gin.Engine {
 	g.Use(middleware.Cors())
 	g.Use(gin.Recovery())
 	g.Use(gin.LoggerWithConfig(gin.LoggerConfig{
-		SkipPaths: []string{"/metrics"},
+		SkipPaths: []string{"/metrics", "/healthz", "/livez"},
 	}))
 
 	// Health check endpoints
