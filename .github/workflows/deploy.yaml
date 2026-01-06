@@ -75,5 +75,9 @@ jobs:
       # Force rollout to pick up new image & secrets
       - name: Restart deployment
         run: |
-          kubectl rollout restart deployment/$APP_NAME -n $KUBE_NAMESPACE
-          kubectl rollout status deployment/$APP_NAME -n $KUBE_NAMESPACE
+          if kubectl get deployment $APP_NAME -n $KUBE_NAMESPACE &> /dev/null; then
+            kubectl rollout restart deployment/$APP_NAME -n $KUBE_NAMESPACE
+            kubectl rollout status deployment/$APP_NAME -n $KUBE_NAMESPACE
+          else
+            echo "Deployment $APP_NAME not found in namespace $KUBE_NAMESPACE, skipping restart"
+          fi
