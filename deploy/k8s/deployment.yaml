@@ -43,7 +43,7 @@ spec:
               path: /readyz
               port: 80
             initialDelaySeconds: 5
-            periodSeconds: 5
+            periodSeconds: 15
             timeoutSeconds: 2
             failureThreshold: 3
           livenessProbe:
@@ -51,6 +51,6 @@ spec:
               path: /livez
               port: 80
             initialDelaySeconds: 10
-            periodSeconds: 10
+            periodSeconds: 60
             timeoutSeconds: 2
             failureThreshold: 3
