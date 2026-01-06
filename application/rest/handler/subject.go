@@ -10,18 +10,25 @@ import (
 	"github.com/arvinpaundra/private-api/infrastructure/shared"
 	"github.com/arvinpaundra/private-api/infrastructure/subject"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type SubjectHandler struct {
-	db  *gorm.DB
-	vld *validator.Validator
+	db     *gorm.DB
+	logger *zap.Logger
+	vld    *validator.Validator
 }
 
-func NewSubjectHandler(db *gorm.DB, vld *validator.Validator) *SubjectHandler {
+func NewSubjectHandler(
+	db *gorm.DB,
+	logger *zap.Logger,
+	vld *validator.Validator,
+) *SubjectHandler {
 	return &SubjectHandler{
-		db:  db,
-		vld: vld,
+		db:     db,
+		logger: logger.With(zap.String("domain", "subject")),
+		vld:    vld,
 	}
 }
 
@@ -47,6 +54,8 @@ func (h *SubjectHandler) CreateSubject(c *gin.Context) {
 
 	err = svc.Execute(c.Request.Context(), &command)
 	if err != nil {
+		h.logger.Error("failed to create subject", zap.Error(err))
+
 		switch err {
 		case constant.ErrSubjectAlreadyExists:
 			c.JSON(http.StatusConflict, format.Conflict(err.Error()))
@@ -84,6 +93,8 @@ func (h *SubjectHandler) UpdateSubject(c *gin.Context) {
 
 	err = svc.Execute(c.Request.Context(), &command)
 	if err != nil {
+		h.logger.Error("failed to update subject", zap.Error(err))
+
 		switch err {
 		case constant.ErrSubjectNotFound:
 			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))
@@ -112,6 +123,8 @@ func (h *SubjectHandler) FindDetailSubject(c *gin.Context) {
 
 	result, err := svc.Execute(c.Request.Context(), &command)
 	if err != nil {
+		h.logger.Error("failed to find detail subject", zap.Error(err))
+
 		switch err {
 		case constant.ErrSubjectNotFound:
 			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))
@@ -141,6 +154,8 @@ func (h *SubjectHandler) FindAllSubjects(c *gin.Context) {
 
 	result, err := svc.Execute(c.Request.Context(), &command)
 	if err != nil {
+		h.logger.Error("failed to find all subjects", zap.Error(err))
+
 		c.JSON(http.StatusInternalServerError, format.InternalServerError())
 		return
 	}
@@ -161,6 +176,8 @@ func (h *SubjectHandler) DeleteSubject(c *gin.Context) {
 
 	err := svc.Execute(c.Request.Context(), &command)
 	if err != nil {
+		h.logger.Error("failed to delete subject", zap.Error(err))
+
 		switch err {
 		case constant.ErrSubjectNotFound:
 			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))

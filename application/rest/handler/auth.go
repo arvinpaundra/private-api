@@ -12,17 +12,24 @@ import (
 	"github.com/arvinpaundra/private-api/infrastructure/auth"
 	"github.com/arvinpaundra/private-api/infrastructure/shared"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type AuthHandler struct {
 	db        *gorm.DB
+	logger    *zap.Logger
 	validator *validator.Validator
 }
 
-func NewAuthHandler(db *gorm.DB, validator *validator.Validator) *AuthHandler {
+func NewAuthHandler(
+	db *gorm.DB,
+	logger *zap.Logger,
+	validator *validator.Validator,
+) *AuthHandler {
 	return &AuthHandler{
 		db:        db,
+		logger:    logger.With(zap.String("domain", "auth")),
 		validator: validator,
 	}
 }
@@ -51,6 +58,8 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 	err = svc.Execute(c.Request.Context(), command)
 	if err != nil {
+		h.logger.Error("failed to register user", zap.Error(err))
+
 		switch err {
 		case constant.ErrEmailAlreadyExists:
 			c.JSON(http.StatusConflict, format.Conflict(err.Error()))
@@ -87,6 +96,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	result, err := svc.Execute(c.Request.Context(), command)
 	if err != nil {
+		h.logger.Error("failed to login user", zap.Error(err))
+
 		switch err {
 		case constant.ErrUserNotFound:
 			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))
@@ -126,6 +137,8 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 
 	err = svc.Execute(c.Request.Context(), command)
 	if err != nil {
+		h.logger.Error("failed to logout user", zap.Error(err))
+
 		switch err {
 		case constant.ErrUserNotFound:
 			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))
@@ -162,6 +175,8 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 
 	result, err := svc.Execute(c.Request.Context(), command)
 	if err != nil {
+		h.logger.Error("failed to refresh token", zap.Error(err))
+
 		switch err {
 		case constant.ErrInvalidRefreshToken:
 			c.JSON(http.StatusUnauthorized, format.Unauthorized(err.Error()))

@@ -11,14 +11,15 @@ import (
 	"github.com/arvinpaundra/private-api/application/rest/router/submission"
 	"github.com/arvinpaundra/private-api/core/validator"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
-func Register(g *gin.Engine, db *gorm.DB) *gin.Engine {
+func Register(g *gin.Engine, db *gorm.DB, logger *zap.Logger) *gin.Engine {
 	g.Use(middleware.Cors())
 	g.Use(gin.Recovery())
 	g.Use(gin.LoggerWithConfig(gin.LoggerConfig{
-		SkipPaths: []string{"/metrics", "/healthz", "/livez"},
+		SkipPaths: []string{"/metrics", "/readyz", "/livez"},
 	}))
 
 	// Health check endpoints
@@ -27,12 +28,12 @@ func Register(g *gin.Engine, db *gorm.DB) *gin.Engine {
 
 	v1 := g.Group("/v1")
 
-	authRouter := auth.NewAuthRouter(db, validator.NewValidator())
-	subjectRouter := subject.NewSubjectRouter(db, validator.NewValidator())
-	gradeRouter := grade.NewGradeRouter(db, validator.NewValidator())
-	moduleRouter := module.NewModuleRouter(db, validator.NewValidator())
-	submissionRouter := submission.NewSubmissionRouter(db, validator.NewValidator())
-	dashboardRouter := dashboard.NewDashboardRouter(db)
+	authRouter := auth.NewAuthRouter(db, logger, validator.NewValidator())
+	subjectRouter := subject.NewSubjectRouter(db, logger, validator.NewValidator())
+	gradeRouter := grade.NewGradeRouter(db, logger, validator.NewValidator())
+	moduleRouter := module.NewModuleRouter(db, logger, validator.NewValidator())
+	submissionRouter := submission.NewSubmissionRouter(db, logger, validator.NewValidator())
+	dashboardRouter := dashboard.NewDashboardRouter(db, logger)
 
 	// public routes
 	authRouter.Public(v1)

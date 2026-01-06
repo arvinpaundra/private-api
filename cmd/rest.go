@@ -27,7 +27,7 @@ var restCmd = &cobra.Command{
 
 		g := gin.New()
 
-		app := router.Register(g, relationaldb.GetConnection())
+		app := router.Register(g, relationaldb.GetConnection(), util.NewLogger(config.GetString("APP_ENV")))
 
 		srv := http.Server{
 			Addr:    fmt.Sprintf(":%s", port),

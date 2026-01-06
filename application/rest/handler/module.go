@@ -10,18 +10,25 @@ import (
 	"github.com/arvinpaundra/private-api/infrastructure/module"
 	"github.com/arvinpaundra/private-api/infrastructure/shared"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type ModuleHandler struct {
-	db  *gorm.DB
-	vld *validator.Validator
+	db     *gorm.DB
+	logger *zap.Logger
+	vld    *validator.Validator
 }
 
-func NewModuleHandler(db *gorm.DB, vld *validator.Validator) *ModuleHandler {
+func NewModuleHandler(
+	db *gorm.DB,
+	logger *zap.Logger,
+	vld *validator.Validator,
+) *ModuleHandler {
 	return &ModuleHandler{
-		db:  db,
-		vld: vld,
+		db:     db,
+		logger: logger.With(zap.String("domain", "module")),
+		vld:    vld,
 	}
 }
 
@@ -49,6 +56,8 @@ func (h *ModuleHandler) CreateModule(c *gin.Context) {
 
 	slug, err := svc.Execute(c.Request.Context(), &command)
 	if err != nil {
+		h.logger.Error("failed to create module", zap.Error(err))
+
 		switch err {
 		case constant.ErrSubjectNotFound, constant.ErrGradeNotFound, constant.ErrModuleNotFound:
 			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))
@@ -82,6 +91,8 @@ func (h *ModuleHandler) FindAllModules(c *gin.Context) {
 
 	result, err := svc.Execute(c.Request.Context(), &command)
 	if err != nil {
+		h.logger.Error("failed to find all modules", zap.Error(err))
+
 		switch err {
 		case constant.ErrSubjectNotFound, constant.ErrGradeNotFound, constant.ErrModuleNotFound:
 			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))
@@ -123,6 +134,8 @@ func (h *ModuleHandler) AddQuestions(c *gin.Context) {
 
 	err = svc.Execute(c.Request.Context(), &command)
 	if err != nil {
+		h.logger.Error("failed to add questions", zap.Error(err))
+
 		switch err {
 		case constant.ErrModuleNotFound, constant.ErrQuestionNotFound:
 			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))
@@ -153,6 +166,8 @@ func (h *ModuleHandler) FindDetailModule(c *gin.Context) {
 
 	result, err := svc.Execute(c.Request.Context(), &command)
 	if err != nil {
+		h.logger.Error("failed to find detail module", zap.Error(err))
+
 		switch err {
 		case constant.ErrModuleNotFound:
 			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))
@@ -182,6 +197,8 @@ func (h *ModuleHandler) FindDetailModuleQuestions(c *gin.Context) {
 
 	result, err := svc.Execute(c.Request.Context(), &command)
 	if err != nil {
+		h.logger.Error("failed to find detail module questions", zap.Error(err))
+
 		switch err {
 		case constant.ErrModuleNotFound:
 			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))
@@ -216,6 +233,8 @@ func (h *ModuleHandler) TogglePublishModule(c *gin.Context) {
 
 	err := svc.Execute(c.Request.Context(), &command)
 	if err != nil {
+		h.logger.Error("failed to toggle publish module", zap.Error(err))
+
 		switch err {
 		case constant.ErrModuleNotFound:
 			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))
@@ -250,6 +269,8 @@ func (h *ModuleHandler) FindPublishedQuestion(c *gin.Context) {
 
 	result, err := svc.Execute(c.Request.Context(), &command)
 	if err != nil {
+		h.logger.Error("failed to find published question", zap.Error(err))
+
 		switch err {
 		case constant.ErrModuleNotFound, constant.ErrQuestionNotFound:
 			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))
@@ -284,6 +305,8 @@ func (h *ModuleHandler) DeleteModule(c *gin.Context) {
 
 	err := svc.Execute(c.Request.Context(), &command)
 	if err != nil {
+		h.logger.Error("failed to delete module", zap.Error(err))
+
 		switch err {
 		case constant.ErrModuleNotFound:
 			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))

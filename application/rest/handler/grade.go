@@ -10,18 +10,25 @@ import (
 	"github.com/arvinpaundra/private-api/infrastructure/grade"
 	"github.com/arvinpaundra/private-api/infrastructure/shared"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type GradeHandler struct {
-	db  *gorm.DB
-	vld *validator.Validator
+	db     *gorm.DB
+	logger *zap.Logger
+	vld    *validator.Validator
 }
 
-func NewGradeHandler(db *gorm.DB, vld *validator.Validator) *GradeHandler {
+func NewGradeHandler(
+	db *gorm.DB,
+	logger *zap.Logger,
+	vld *validator.Validator,
+) *GradeHandler {
 	return &GradeHandler{
-		db:  db,
-		vld: vld,
+		db:     db,
+		logger: logger.With(zap.String("domain", "grade")),
+		vld:    vld,
 	}
 }
 
@@ -47,6 +54,8 @@ func (h *GradeHandler) CreateGrade(c *gin.Context) {
 
 	err = svc.Execute(c.Request.Context(), &command)
 	if err != nil {
+		h.logger.Error("failed to create grade", zap.Error(err))
+
 		switch err {
 		case constant.ErrGradeAlreadyExists:
 			c.JSON(http.StatusConflict, format.Conflict(err.Error()))
@@ -84,6 +93,8 @@ func (h *GradeHandler) UpdateGrade(c *gin.Context) {
 
 	err = svc.Execute(c.Request.Context(), &command)
 	if err != nil {
+		h.logger.Error("failed to update grade", zap.Error(err))
+
 		switch err {
 		case constant.ErrGradeNotFound:
 			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))
@@ -112,6 +123,8 @@ func (h *GradeHandler) FindDetailGrade(c *gin.Context) {
 
 	result, err := svc.Execute(c.Request.Context(), &command)
 	if err != nil {
+		h.logger.Error("failed to find detail grade", zap.Error(err))
+
 		switch err {
 		case constant.ErrGradeNotFound:
 			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))
@@ -141,6 +154,8 @@ func (h *GradeHandler) FindAllGrades(c *gin.Context) {
 
 	result, err := svc.Execute(c.Request.Context(), &command)
 	if err != nil {
+		h.logger.Error("failed to find all grades", zap.Error(err))
+
 		c.JSON(http.StatusInternalServerError, format.InternalServerError())
 		return
 	}
@@ -161,6 +176,8 @@ func (h *GradeHandler) DeleteGrade(c *gin.Context) {
 
 	err := svc.Execute(c.Request.Context(), &command)
 	if err != nil {
+		h.logger.Error("failed to delete grade", zap.Error(err))
+
 		switch err {
 		case constant.ErrGradeNotFound:
 			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))

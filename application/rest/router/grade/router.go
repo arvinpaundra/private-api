@@ -5,23 +5,30 @@ import (
 	"github.com/arvinpaundra/private-api/application/rest/middleware"
 	"github.com/arvinpaundra/private-api/core/validator"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type GradeRouter struct {
-	db  *gorm.DB
-	vld *validator.Validator
+	db     *gorm.DB
+	logger *zap.Logger
+	vld    *validator.Validator
 }
 
-func NewGradeRouter(db *gorm.DB, vld *validator.Validator) *GradeRouter {
+func NewGradeRouter(
+	db *gorm.DB,
+	logger *zap.Logger,
+	vld *validator.Validator,
+) *GradeRouter {
 	return &GradeRouter{
-		db:  db,
-		vld: vld,
+		db:     db,
+		logger: logger,
+		vld:    vld,
 	}
 }
 
 func (r *GradeRouter) Private(g *gin.RouterGroup) {
-	h := handler.NewGradeHandler(r.db, r.vld)
+	h := handler.NewGradeHandler(r.db, r.logger, r.vld)
 	m := middleware.NewAuthenticate(r.db)
 
 	grade := g.Group("/grades", m.Authenticate())

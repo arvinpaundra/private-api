@@ -5,26 +5,30 @@ import (
 	"github.com/arvinpaundra/private-api/application/rest/middleware"
 	"github.com/arvinpaundra/private-api/core/validator"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type AuthRouter struct {
-	db  *gorm.DB
-	vld *validator.Validator
+	db     *gorm.DB
+	logger *zap.Logger
+	vld    *validator.Validator
 }
 
 func NewAuthRouter(
 	db *gorm.DB,
+	logger *zap.Logger,
 	vld *validator.Validator,
 ) *AuthRouter {
 	return &AuthRouter{
-		db:  db,
-		vld: vld,
+		db:     db,
+		logger: logger,
+		vld:    vld,
 	}
 }
 
 func (r *AuthRouter) Public(g *gin.RouterGroup) {
-	h := handler.NewAuthHandler(r.db, r.vld)
+	h := handler.NewAuthHandler(r.db, r.logger, r.vld)
 
 	auth := g.Group("/auth")
 	{
@@ -35,7 +39,7 @@ func (r *AuthRouter) Public(g *gin.RouterGroup) {
 }
 
 func (r *AuthRouter) Private(g *gin.RouterGroup) {
-	h := handler.NewAuthHandler(r.db, r.vld)
+	h := handler.NewAuthHandler(r.db, r.logger, r.vld)
 	m := middleware.NewAuthenticate(r.db)
 
 	me := g.Group("/me", m.Authenticate())

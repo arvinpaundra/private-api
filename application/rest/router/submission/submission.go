@@ -5,23 +5,30 @@ import (
 	"github.com/arvinpaundra/private-api/application/rest/middleware"
 	"github.com/arvinpaundra/private-api/core/validator"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type SubmissionRouter struct {
-	db  *gorm.DB
-	vld *validator.Validator
+	db     *gorm.DB
+	logger *zap.Logger
+	vld    *validator.Validator
 }
 
-func NewSubmissionRouter(db *gorm.DB, vld *validator.Validator) *SubmissionRouter {
+func NewSubmissionRouter(
+	db *gorm.DB,
+	logger *zap.Logger,
+	vld *validator.Validator,
+) *SubmissionRouter {
 	return &SubmissionRouter{
-		db:  db,
-		vld: vld,
+		db:     db,
+		logger: logger,
+		vld:    vld,
 	}
 }
 
 func (r *SubmissionRouter) Private(g *gin.RouterGroup) {
-	h := handler.NewSubmissionHandler(r.db, r.vld)
+	h := handler.NewSubmissionHandler(r.db, r.logger, r.vld)
 	m := middleware.NewAuthenticate(r.db)
 
 	submission := g.Group("/submissions", m.Authenticate())
@@ -30,7 +37,7 @@ func (r *SubmissionRouter) Private(g *gin.RouterGroup) {
 }
 
 func (r *SubmissionRouter) Public(g *gin.RouterGroup) {
-	h := handler.NewSubmissionHandler(r.db, r.vld)
+	h := handler.NewSubmissionHandler(r.db, r.logger, r.vld)
 
 	submission := g.Group("/modules/:module_slug/submissions")
 	{

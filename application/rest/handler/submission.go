@@ -9,18 +9,25 @@ import (
 	"github.com/arvinpaundra/private-api/domain/submission/service"
 	"github.com/arvinpaundra/private-api/infrastructure/submission"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type SubmissionHandler struct {
-	db  *gorm.DB
-	vld *validator.Validator
+	db     *gorm.DB
+	logger *zap.Logger
+	vld    *validator.Validator
 }
 
-func NewSubmissionHandler(db *gorm.DB, vld *validator.Validator) *SubmissionHandler {
+func NewSubmissionHandler(
+	db *gorm.DB,
+	logger *zap.Logger,
+	vld *validator.Validator,
+) *SubmissionHandler {
 	return &SubmissionHandler{
-		db:  db,
-		vld: vld,
+		db:     db,
+		logger: logger.With(zap.String("domain", "submission")),
+		vld:    vld,
 	}
 }
 
@@ -48,6 +55,8 @@ func (h *SubmissionHandler) StartSubmission(c *gin.Context) {
 
 	result, err := svc.Execute(c.Request.Context(), &command)
 	if err != nil {
+		h.logger.Error("failed to start submission", zap.Error(err))
+
 		switch err {
 		case constant.ErrModuleNotFound:
 			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))
@@ -87,6 +96,8 @@ func (h *SubmissionHandler) SubmitAnswer(c *gin.Context) {
 
 	result, err := svc.Execute(c.Request.Context(), &command)
 	if err != nil {
+		h.logger.Error("failed to submit answer", zap.Error(err))
+
 		switch err {
 		case constant.ErrSubmissionNotFound, constant.ErrModuleNotFound, constant.ErrQuestionNotFound, constant.ErrChoiceNotFound:
 			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))
@@ -126,6 +137,8 @@ func (h *SubmissionHandler) FinalizeSubmission(c *gin.Context) {
 
 	result, err := svc.Execute(c.Request.Context(), &command)
 	if err != nil {
+		h.logger.Error("failed to finalize submission", zap.Error(err))
+
 		switch err {
 		case constant.ErrSubmissionNotFound, constant.ErrModuleNotFound:
 			c.JSON(http.StatusNotFound, format.NotFound(err.Error()))
@@ -158,6 +171,8 @@ func (h *SubmissionHandler) GetAllSubmissions(c *gin.Context) {
 
 	result, err := svc.Execute(c.Request.Context(), &query)
 	if err != nil {
+		h.logger.Error("failed to get all submissions", zap.Error(err))
+
 		c.JSON(http.StatusInternalServerError, format.InternalServerError())
 		return
 	}

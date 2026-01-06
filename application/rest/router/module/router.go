@@ -5,23 +5,30 @@ import (
 	"github.com/arvinpaundra/private-api/application/rest/middleware"
 	"github.com/arvinpaundra/private-api/core/validator"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type ModuleRouter struct {
-	db  *gorm.DB
-	vld *validator.Validator
+	db     *gorm.DB
+	logger *zap.Logger
+	vld    *validator.Validator
 }
 
-func NewModuleRouter(db *gorm.DB, vld *validator.Validator) *ModuleRouter {
+func NewModuleRouter(
+	db *gorm.DB,
+	logger *zap.Logger,
+	vld *validator.Validator,
+) *ModuleRouter {
 	return &ModuleRouter{
-		db:  db,
-		vld: vld,
+		db:     db,
+		logger: logger,
+		vld:    vld,
 	}
 }
 
 func (r *ModuleRouter) Private(g *gin.RouterGroup) {
-	h := handler.NewModuleHandler(r.db, r.vld)
+	h := handler.NewModuleHandler(r.db, r.logger, r.vld)
 	m := middleware.NewAuthenticate(r.db)
 
 	module := g.Group("/modules", m.Authenticate())
@@ -44,7 +51,7 @@ func (r *ModuleRouter) Private(g *gin.RouterGroup) {
 }
 
 func (r *ModuleRouter) Public(g *gin.RouterGroup) {
-	h := handler.NewModuleHandler(r.db, r.vld)
+	h := handler.NewModuleHandler(r.db, r.logger, r.vld)
 
 	module := g.Group("/modules/:module_slug")
 	{
