@@ -6,14 +6,14 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: traefik
 
-    external-dns.alpha.kubernetes.io/hostname: api.private.arvinpaundra.dev
+    external-dns.alpha.kubernetes.io/hostname: api-private.arvinpaundra.dev
     external-dns.alpha.kubernetes.io/target: 70.153.192.21
     external-dns.alpha.kubernetes.io/cloudflare-proxied: 'true'
 
     # traefik.ingress.kubernetes.io/router/entrypoints: web
 spec:
   rules:
-    - host: api.private.arvinpaundra.dev
+    - host: api-private.arvinpaundra.dev
       http:
         paths:
           - path: /
