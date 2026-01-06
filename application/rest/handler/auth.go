@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 
+	"github.com/arvinpaundra/private-api/config"
 	"github.com/arvinpaundra/private-api/core/format"
 	"github.com/arvinpaundra/private-api/core/token"
 	"github.com/arvinpaundra/private-api/core/validator"
@@ -11,7 +12,6 @@ import (
 	"github.com/arvinpaundra/private-api/infrastructure/auth"
 	"github.com/arvinpaundra/private-api/infrastructure/shared"
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 	"gorm.io/gorm"
 )
 
@@ -81,7 +81,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	svc := service.NewUserLogin(
 		auth.NewUserReaderRepository(h.db),
 		auth.NewUserWriterRepository(h.db),
-		token.NewJWT(viper.GetString("JWT_SECRET")),
+		token.NewJWT(config.GetString("JWT_SECRET")),
 		auth.NewUnitOfWork(h.db),
 	)
 
@@ -119,7 +119,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 	svc := service.NewUserLogout(
 		auth.NewUserReaderRepository(h.db),
 		auth.NewUserWriterRepository(h.db),
-		token.NewJWT(viper.GetString("JWT_SECRET")),
+		token.NewJWT(config.GetString("JWT_SECRET")),
 		shared.NewAuthStorage(c),
 		auth.NewUnitOfWork(h.db),
 	)
@@ -156,7 +156,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	svc := service.NewRefreshToken(
 		auth.NewUserReaderRepository(h.db),
 		auth.NewUserWriterRepository(h.db),
-		token.NewJWT(viper.GetString("JWT_SECRET")),
+		token.NewJWT(config.GetString("JWT_SECRET")),
 		auth.NewUnitOfWork(h.db),
 	)
 

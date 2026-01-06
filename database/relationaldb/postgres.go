@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/spf13/viper"
+	"github.com/arvinpaundra/private-api/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -22,13 +22,13 @@ type pgsql struct {
 
 func NewPostgres() *pgsql {
 	return &pgsql{
-		host:     viper.GetString("DB_HOST"),
-		port:     viper.GetString("DB_PORT"),
-		user:     viper.GetString("DB_USER"),
-		pass:     viper.GetString("DB_PASS"),
-		dbname:   viper.GetString("DB_DBNAME"),
-		sslmode:  viper.GetString("DB_SSLMODE"),
-		timezone: viper.GetString("DB_TIMEZONE"),
+		host:     config.GetString("DB_HOST"),
+		port:     config.GetString("DB_PORT"),
+		user:     config.GetString("DB_USER"),
+		pass:     config.GetString("DB_PASS"),
+		dbname:   config.GetString("DB_DBNAME"),
+		sslmode:  config.GetString("DB_SSLMODE"),
+		timezone: config.GetString("DB_TIMEZONE"),
 	}
 }
 

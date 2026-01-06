@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/arvinpaundra/private-api/config"
 	"github.com/redis/go-redis/v9"
-	"github.com/spf13/viper"
 )
 
 type redisdb struct {
@@ -17,10 +17,10 @@ type redisdb struct {
 
 func NewRedisDB() *redisdb {
 	return &redisdb{
-		host: viper.GetString("REDIS_HOST"),
-		port: viper.GetString("REDIS_PORT"),
-		pass: viper.GetString("REDIS_PASS"),
-		db:   viper.GetInt("REDIS_DB"),
+		host: config.GetString("REDIS_HOST"),
+		port: config.GetString("REDIS_PORT"),
+		pass: config.GetString("REDIS_PASS"),
+		db:   config.GetInt("REDIS_DB"),
 	}
 }
 

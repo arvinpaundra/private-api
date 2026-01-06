@@ -4,13 +4,13 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/arvinpaundra/private-api/config"
 	"github.com/arvinpaundra/private-api/core/format"
 	"github.com/arvinpaundra/private-api/core/token"
 	"github.com/arvinpaundra/private-api/domain/auth/service"
 	"github.com/arvinpaundra/private-api/domain/shared/entity"
 	"github.com/arvinpaundra/private-api/infrastructure/auth"
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 	"gorm.io/gorm"
 )
 
@@ -35,7 +35,7 @@ func (a *Authenticate) Authenticate() gin.HandlerFunc {
 
 		svc := service.NewCheckSession(
 			auth.NewUserReaderRepository(a.db),
-			token.NewJWT(viper.GetString("JWT_SECRET")),
+			token.NewJWT(config.GetString("JWT_SECRET")),
 		)
 
 		command := service.CheckSessionCommand{
